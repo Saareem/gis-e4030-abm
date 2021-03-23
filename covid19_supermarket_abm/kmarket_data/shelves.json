@@ -6,7 +6,7 @@
         "fixtureWidth":51,
         "fixtureDepth":41,
         "shelfCode":"1",
-        "fixtureAngle":0,
+        "fixtureAngle":270,
         "fixtureType":"StandardShelf"
     },
     {
@@ -16,7 +16,7 @@
         "fixtureWidth":49,
         "fixtureDepth":41,
         "shelfCode":"2",
-        "fixtureAngle":0,
+        "fixtureAngle":270,
         "fixtureType":"StandardShelf"
     },
     {
@@ -26,7 +26,7 @@
         "fixtureWidth":49,
         "fixtureDepth":41,
         "shelfCode":"3",
-        "fixtureAngle":0,
+        "fixtureAngle":270,
         "fixtureType":"StandardShelf"
     },
     {
@@ -36,7 +36,7 @@
         "fixtureWidth":50,
         "fixtureDepth":41,
         "shelfCode":"4",
-        "fixtureAngle":0,
+        "fixtureAngle":270,
         "fixtureType":"StandardShelf"
     },
     {
@@ -46,7 +46,7 @@
         "fixtureWidth":51,
         "fixtureDepth":41,
         "shelfCode":"5",
-        "fixtureAngle":0,
+        "fixtureAngle":270,
         "fixtureType":"StandardShelf"
     },
     {
@@ -56,7 +56,7 @@
         "fixtureWidth":35,
         "fixtureDepth":18,
         "shelfCode":"6",
-        "fixtureAngle":0,
+        "fixtureAngle":270,
         "fixtureType":"StandardShelf"
     },
     {
@@ -66,7 +66,7 @@
         "fixtureWidth":51,
         "fixtureDepth":42,
         "shelfCode":"7",
-        "fixtureAngle":0,
+        "fixtureAngle":270,
         "fixtureType":"StandardShelf"
     },
     {
@@ -76,7 +76,7 @@
         "fixtureWidth":51,
         "fixtureDepth":42,
         "shelfCode":"8",
-        "fixtureAngle":0,
+        "fixtureAngle":270,
         "fixtureType":"StandardShelf"
     },
     {
@@ -127,7 +127,7 @@
         "fixtureDepth":51,
         "shelfCode":"13",
         "fixtureAngle":0,
-        "fixtureType":"StandardShelf"
+        "fixtureType":"NoDirectionShelf"
     },
     {
         "index":0,
@@ -137,7 +137,7 @@
         "fixtureDepth":51,
         "shelfCode":"14",
         "fixtureAngle":0,
-        "fixtureType":"StandardShelf"
+        "fixtureType":"NoDirectionShelf"
     },
     {
         "index":0,
@@ -147,7 +147,7 @@
         "fixtureDepth":25,
         "shelfCode":"15",
         "fixtureAngle":0,
-        "fixtureType":"StandardShelf"
+        "fixtureType":"NoDirectionShelf"
     },
     {
         "index":0,
@@ -157,7 +157,7 @@
         "fixtureDepth":57,
         "shelfCode":"16",
         "fixtureAngle":0,
-        "fixtureType":"StandardShelf"
+        "fixtureType":"NoDirectionShelf"
     },
     {
         "index":0,
@@ -177,7 +177,7 @@
         "fixtureDepth":63,
         "shelfCode":"18",
         "fixtureAngle":0,
-        "fixtureType":"StandardShelf"
+        "fixtureType":"NoDirectionShelf"
     },
     {
         "index":0,
@@ -187,7 +187,7 @@
         "fixtureDepth":63,
         "shelfCode":"19",
         "fixtureAngle":0,
-        "fixtureType":"StandardShelf"
+        "fixtureType":"NoDirectionShelf"
     },
     {
         "index":0,
@@ -197,7 +197,7 @@
         "fixtureDepth":62,
         "shelfCode":"20",
         "fixtureAngle":0,
-        "fixtureType":"StandardShelf"
+        "fixtureType":"NoDirectionShelf"
     },
     {
         "index":0,
@@ -207,7 +207,7 @@
         "fixtureDepth":62,
         "shelfCode":"21",
         "fixtureAngle":0,
-        "fixtureType":"StandardShelf"
+        "fixtureType":"NoDirectionShelf"
     },
     {
         "index":0,
@@ -217,7 +217,7 @@
         "fixtureDepth":47,
         "shelfCode":"22",
         "fixtureAngle":0,
-        "fixtureType":"StandardShelf"
+        "fixtureType":"NoDirectionShelf"
     },
     {
         "index":0,
@@ -226,7 +226,7 @@
         "fixtureWidth":28,
         "fixtureDepth":47,
         "shelfCode":"23",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -236,7 +236,7 @@
         "fixtureWidth":28,
         "fixtureDepth":46,
         "shelfCode":"24",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -246,7 +246,7 @@
         "fixtureWidth":28,
         "fixtureDepth":47,
         "shelfCode":"25",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -256,7 +256,7 @@
         "fixtureWidth":23,
         "fixtureDepth":48,
         "shelfCode":"26",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -286,7 +286,7 @@
         "fixtureWidth":49,
         "fixtureDepth":17,
         "shelfCode":"29",
-        "fixtureAngle":0,
+        "fixtureAngle":90,
         "fixtureType":"StandardShelf"
     },
     {
@@ -296,7 +296,7 @@
         "fixtureWidth":50,
         "fixtureDepth":17,
         "shelfCode":"30",
-        "fixtureAngle":0,
+        "fixtureAngle":90,
         "fixtureType":"StandardShelf"
     },
     {
@@ -306,7 +306,7 @@
         "fixtureWidth":52,
         "fixtureDepth":35,
         "shelfCode":"31",
-        "fixtureAngle":0,
+        "fixtureAngle":90,
         "fixtureType":"StandardShelf"
     },
     {
@@ -316,7 +316,7 @@
         "fixtureWidth":36,
         "fixtureDepth":24,
         "shelfCode":"32",
-        "fixtureAngle":0,
+        "fixtureAngle":90,
         "fixtureType":"StandardShelf"
     },
     {
@@ -326,7 +326,7 @@
         "fixtureWidth":40,
         "fixtureDepth":18,
         "shelfCode":"33",
-        "fixtureAngle":0,
+        "fixtureAngle":90,
         "fixtureType":"StandardShelf"
     },
     {
@@ -336,7 +336,7 @@
         "fixtureWidth":21,
         "fixtureDepth":36,
         "shelfCode":"34",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -356,7 +356,7 @@
         "fixtureWidth":21,
         "fixtureDepth":35,
         "shelfCode":"36",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -376,7 +376,7 @@
         "fixtureWidth":21,
         "fixtureDepth":36,
         "shelfCode":"38",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -396,7 +396,7 @@
         "fixtureWidth":21,
         "fixtureDepth":35,
         "shelfCode":"40",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -416,7 +416,7 @@
         "fixtureWidth":21,
         "fixtureDepth":35,
         "shelfCode":"42",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -436,7 +436,7 @@
         "fixtureWidth":21,
         "fixtureDepth":36,
         "shelfCode":"44",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -456,7 +456,7 @@
         "fixtureWidth":21,
         "fixtureDepth":35,
         "shelfCode":"46",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -476,7 +476,7 @@
         "fixtureWidth":21,
         "fixtureDepth":35,
         "shelfCode":"48",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -496,7 +496,7 @@
         "fixtureWidth":21,
         "fixtureDepth":35,
         "shelfCode":"50",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -516,7 +516,7 @@
         "fixtureWidth":21,
         "fixtureDepth":35,
         "shelfCode":"52",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -536,7 +536,7 @@
         "fixtureWidth":21,
         "fixtureDepth":36,
         "shelfCode":"54",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -556,7 +556,7 @@
         "fixtureWidth":21,
         "fixtureDepth":35,
         "shelfCode":"56",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -576,7 +576,7 @@
         "fixtureWidth":21,
         "fixtureDepth":35,
         "shelfCode":"58",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -596,7 +596,7 @@
         "fixtureWidth":21,
         "fixtureDepth":36,
         "shelfCode":"60",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -616,7 +616,7 @@
         "fixtureWidth":21,
         "fixtureDepth":35,
         "shelfCode":"62",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -636,7 +636,7 @@
         "fixtureWidth":21,
         "fixtureDepth":35,
         "shelfCode":"64",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -656,7 +656,7 @@
         "fixtureWidth":22,
         "fixtureDepth":35,
         "shelfCode":"66",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -676,7 +676,7 @@
         "fixtureWidth":22,
         "fixtureDepth":35,
         "shelfCode":"68",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -696,7 +696,7 @@
         "fixtureWidth":22,
         "fixtureDepth":36,
         "shelfCode":"70",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -716,7 +716,7 @@
         "fixtureWidth":22,
         "fixtureDepth":35,
         "shelfCode":"72",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -736,7 +736,7 @@
         "fixtureWidth":22,
         "fixtureDepth":24,
         "shelfCode":"74",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -766,7 +766,7 @@
         "fixtureWidth":22,
         "fixtureDepth":47,
         "shelfCode":"77",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -786,7 +786,7 @@
         "fixtureWidth":21,
         "fixtureDepth":18,
         "shelfCode":"79",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -806,7 +806,7 @@
         "fixtureWidth":22,
         "fixtureDepth":18,
         "shelfCode":"81",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -816,7 +816,7 @@
         "fixtureWidth":22,
         "fixtureDepth":35,
         "shelfCode":"82",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -836,7 +836,7 @@
         "fixtureWidth":22,
         "fixtureDepth":36,
         "shelfCode":"84",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -856,7 +856,7 @@
         "fixtureWidth":22,
         "fixtureDepth":35,
         "shelfCode":"86",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -866,7 +866,7 @@
         "fixtureWidth":22,
         "fixtureDepth":35,
         "shelfCode":"87",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -886,7 +886,7 @@
         "fixtureWidth":22,
         "fixtureDepth":36,
         "shelfCode":"89",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -906,7 +906,7 @@
         "fixtureWidth":22,
         "fixtureDepth":35,
         "shelfCode":"91",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -916,7 +916,7 @@
         "fixtureWidth":22,
         "fixtureDepth":36,
         "shelfCode":"92",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -936,7 +936,7 @@
         "fixtureWidth":22,
         "fixtureDepth":35,
         "shelfCode":"94",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -956,7 +956,7 @@
         "fixtureWidth":21,
         "fixtureDepth":35,
         "shelfCode":"96",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -976,7 +976,7 @@
         "fixtureWidth":22,
         "fixtureDepth":36,
         "shelfCode":"98",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -996,7 +996,7 @@
         "fixtureWidth":21,
         "fixtureDepth":35,
         "shelfCode":"100",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1016,7 +1016,7 @@
         "fixtureWidth":21,
         "fixtureDepth":35,
         "shelfCode":"102",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1036,7 +1036,7 @@
         "fixtureWidth":21,
         "fixtureDepth":36,
         "shelfCode":"104",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1056,7 +1056,7 @@
         "fixtureWidth":21,
         "fixtureDepth":35,
         "shelfCode":"106",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1076,7 +1076,7 @@
         "fixtureWidth":21,
         "fixtureDepth":36,
         "shelfCode":"108",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1096,7 +1096,7 @@
         "fixtureWidth":21,
         "fixtureDepth":35,
         "shelfCode":"110",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1186,7 +1186,7 @@
         "fixtureWidth":49,
         "fixtureDepth":16,
         "shelfCode":"119",
-        "fixtureAngle":0,
+        "fixtureAngle":270,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1196,7 +1196,7 @@
         "fixtureWidth":49,
         "fixtureDepth":16,
         "shelfCode":"120",
-        "fixtureAngle":0,
+        "fixtureAngle":270,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1206,7 +1206,7 @@
         "fixtureWidth":50,
         "fixtureDepth":16,
         "shelfCode":"121",
-        "fixtureAngle":0,
+        "fixtureAngle":270,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1216,7 +1216,7 @@
         "fixtureWidth":50,
         "fixtureDepth":16,
         "shelfCode":"122",
-        "fixtureAngle":0,
+        "fixtureAngle":270,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1226,7 +1226,7 @@
         "fixtureWidth":49,
         "fixtureDepth":16,
         "shelfCode":"123",
-        "fixtureAngle":0,
+        "fixtureAngle":270,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1236,7 +1236,7 @@
         "fixtureWidth":38,
         "fixtureDepth":20,
         "shelfCode":"124",
-        "fixtureAngle":0,
+        "fixtureAngle":90,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1246,7 +1246,7 @@
         "fixtureWidth":57,
         "fixtureDepth":20,
         "shelfCode":"125",
-        "fixtureAngle":0,
+        "fixtureAngle":90,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1256,7 +1256,7 @@
         "fixtureWidth":51,
         "fixtureDepth":33,
         "shelfCode":"126",
-        "fixtureAngle":0,
+        "fixtureAngle":90,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1266,7 +1266,7 @@
         "fixtureWidth":51,
         "fixtureDepth":33,
         "shelfCode":"127",
-        "fixtureAngle":0,
+        "fixtureAngle":90,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1276,7 +1276,7 @@
         "fixtureWidth":58,
         "fixtureDepth":32,
         "shelfCode":"128",
-        "fixtureAngle":0,
+        "fixtureAngle":90,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1286,7 +1286,7 @@
         "fixtureWidth":53,
         "fixtureDepth":32,
         "shelfCode":"129",
-        "fixtureAngle":0,
+        "fixtureAngle":90,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1296,7 +1296,7 @@
         "fixtureWidth":58,
         "fixtureDepth":32,
         "shelfCode":"130",
-        "fixtureAngle":0,
+        "fixtureAngle":90,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1306,7 +1306,7 @@
         "fixtureWidth":58,
         "fixtureDepth":32,
         "shelfCode":"131",
-        "fixtureAngle":0,
+        "fixtureAngle":90,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1316,7 +1316,7 @@
         "fixtureWidth":55,
         "fixtureDepth":33,
         "shelfCode":"132",
-        "fixtureAngle":0,
+        "fixtureAngle":90,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1326,7 +1326,7 @@
         "fixtureWidth":37,
         "fixtureDepth":31,
         "shelfCode":"133",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1336,7 +1336,7 @@
         "fixtureWidth":37,
         "fixtureDepth":31,
         "shelfCode":"134",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1346,7 +1346,7 @@
         "fixtureWidth":37,
         "fixtureDepth":31,
         "shelfCode":"135",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1356,7 +1356,7 @@
         "fixtureWidth":38,
         "fixtureDepth":31,
         "shelfCode":"136",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1366,7 +1366,7 @@
         "fixtureWidth":37,
         "fixtureDepth":31,
         "shelfCode":"137",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1376,7 +1376,7 @@
         "fixtureWidth":37,
         "fixtureDepth":30,
         "shelfCode":"138",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1386,7 +1386,7 @@
         "fixtureWidth":37,
         "fixtureDepth":31,
         "shelfCode":"139",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1396,7 +1396,7 @@
         "fixtureWidth":37,
         "fixtureDepth":31,
         "shelfCode":"140",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1406,7 +1406,7 @@
         "fixtureWidth":37,
         "fixtureDepth":30,
         "shelfCode":"141",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1416,7 +1416,7 @@
         "fixtureWidth":37,
         "fixtureDepth":31,
         "shelfCode":"142",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1426,7 +1426,7 @@
         "fixtureWidth":37,
         "fixtureDepth":30,
         "shelfCode":"143",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1436,7 +1436,7 @@
         "fixtureWidth":37,
         "fixtureDepth":32,
         "shelfCode":"144",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1446,7 +1446,7 @@
         "fixtureWidth":41,
         "fixtureDepth":36,
         "shelfCode":"145",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1456,7 +1456,7 @@
         "fixtureWidth":41,
         "fixtureDepth":35,
         "shelfCode":"146",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1466,7 +1466,7 @@
         "fixtureWidth":41,
         "fixtureDepth":36,
         "shelfCode":"147",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
@@ -1476,7 +1476,7 @@
         "fixtureWidth":23,
         "fixtureDepth":36,
         "shelfCode":"148",
-        "fixtureAngle":0,
+        "fixtureAngle":180,
         "fixtureType":"StandardShelf"
     },
     {
