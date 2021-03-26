@@ -4,15 +4,13 @@ from covid19_supermarket_abm.utils.create_synthetic_baskets import get_all_short
 from covid19_supermarket_abm.simulator import simulate_one_day
 
 # Set parameters
-config = {'arrival_rate': 2.55,  # Poisson rate at which customers arrival
-           'traversal_time': 0.2
-    ,  # mean wait time per node
-           'num_hours_open': 14,  # store opening hours
-           'infection_proportion': 0.0011, # proportion of customers that are infectious
-          "logging enabled" : True
-         }
+config = {'arrival_rate': 2.55,
+          'traversal_time': 0.2,
+          'num_hours_open': 14,
+          'infection_proportion': 0.0011,
+          "logging_enabled": True}
 
-synthetic = False
+synthetic = True
 type = "empirical"
 if synthetic is True:
     type = "synthetic"
@@ -29,8 +27,8 @@ path_generator_function, path_generator_args = get_path_generator(path_generatio
                                                                   zone_paths = zone_paths,
                                                                   G=G,
                                                                   synthetic_path_generator_args = [
-                                                                      5,
-                                                                      2,
+                                                                      1,
+                                                                      1,
                                                                       [1],
                                                                       [23, 52],
                                                                       [55],
@@ -40,4 +38,4 @@ path_generator_function, path_generator_args = get_path_generator(path_generatio
 
 # Simulate a day and store results in results
 results_dict = simulate_one_day(config, G, path_generator_function, path_generator_args)
-print(results_dict["df_num_encounters_per_node"])
+print(results_dict["logs"])
