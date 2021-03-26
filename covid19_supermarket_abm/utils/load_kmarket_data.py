@@ -50,10 +50,10 @@ def load_kmarket_zones():
     return df_zone
 
 
-#def load_example_paths():
-#    with open(os.path.join(data_dir, f'zone_paths.json'), 'r') as f:
-#        zone_paths = json.load(f)
-#    return zone_paths
+def load_example_paths():
+    with open(os.path.join(data_dir, f'zone_paths.json'), 'r') as f:
+        zone_paths = json.load(f)
+    return zone_paths
 
 
 def load_shelves(store_id: int, units='cm', suffix='', data_dir='.') -> List[Shelf]:
