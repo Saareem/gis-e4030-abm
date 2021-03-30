@@ -126,3 +126,9 @@ def plot_shelves(shelves, ax: Optional[plt.axes] = None, color: str = '#C0C0C0',
     # ax.set_ylim([ymin, ymax])
     plt.axis('equal')
     return ax
+
+
+def load_popular_hours():
+    # Get popular hours of the market from google data // Alpo
+    kmarket_hours = pd.read_csv(os.path.join(data_dir, f'kmarket_popular_hours.txt'), sep='\t')
+    return kmarket_hours / 100

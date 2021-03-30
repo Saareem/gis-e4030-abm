@@ -1,3 +1,4 @@
+import logging
 import multiprocessing
 from itertools import repeat
 
@@ -5,12 +6,10 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import simpy
-import logging
-from tqdm import tqdm
-
 from covid19_supermarket_abm.core import Store, _customer_arrivals, _stats_recorder, \
     _sanity_checks
-from covid19_supermarket_abm.utils import istarmap  # enable progress bar with multiprocessing
+from tqdm import tqdm
+from covid19_supermarket_abm.utils.load_kmarket_data import load_popular_hours
 
 
 def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_generator_args: list):
@@ -30,6 +29,11 @@ def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_ge
             raise ValueError('If you set the parameter "max_customers_in_store_per_sqm", '
                              'you need to specify the floor area via the "floorarea" parameter in the config.')
 
+    popular_hours = load_popular_hours()
+
+
+
+
     # Set up environment and run
     env = simpy.Environment()
     store = Store(env, G, max_customers_in_store=max_customers_in_store, logging_enabled=logging_enabled)
@@ -37,7 +41,7 @@ def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_ge
         node_capacity = config.get('node_capacity', 2)
         store.enable_node_capacity(node_capacity)
     path_generator = path_generator_function(*path_generator_args)
-    env.process(_customer_arrivals(env, store, path_generator, config))
+    env.process(_customer_arrivals(env, store, path_generator, config, popular_hours))
     env.process(_stats_recorder(store))
     env.run(until=num_hours_open * 60 * 10)
 
