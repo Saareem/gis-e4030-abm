@@ -1,14 +1,14 @@
 from covid19_supermarket_abm.utils.load_kmarket_data import load_kmarket_store_graph, load_example_paths
 from covid19_supermarket_abm.path_generators import get_path_generator
 from covid19_supermarket_abm.utils.create_synthetic_baskets import get_all_shortest_path_dicts
-from covid19_supermarket_abm.simulator import simulate_one_day
+from covid19_supermarket_abm.simulator import simulate_one_day, simulate_several_days
 
 # Set parameters
 config = {'arrival_rate': 2.55,
           'traversal_time': 0.2,
-          'num_hours_open': 14,
           'infection_proportion': 0.0011,
-          "logging_enabled": True}
+          "logging_enabled": True,
+          "day": 0} # 0 = Monday, ..., 6 = Sunday
 
 synthetic = True
 type = "empirical"
@@ -38,4 +38,5 @@ path_generator_function, path_generator_args = get_path_generator(path_generatio
 
 # Simulate a day and store results in results
 results_dict = simulate_one_day(config, G, path_generator_function, path_generator_args)
-print(results_dict["logs"])
+#results_dict = simulate_several_days(config, G, path_generator_function, path_generator_args, num_iterations=10, use_parallel=False)
+#print(results_dict["logs"])

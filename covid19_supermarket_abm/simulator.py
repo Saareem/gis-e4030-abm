@@ -14,7 +14,8 @@ from covid19_supermarket_abm.utils.load_kmarket_data import load_popular_hours
 
 def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_generator_args: list):
     # Get parameters
-    num_hours_open = config['num_hours_open']
+    popular_hours = load_popular_hours().iloc[:, config['day']]
+    num_hours_open = popular_hours.count()
     logging_enabled = config.get('logging_enabled', False)
     raise_test_error = config.get('raise_test_error', False)  # for debugging purposes
     with_node_capacity = config.get('with_node_capacity', False)
@@ -29,11 +30,6 @@ def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_ge
             raise ValueError('If you set the parameter "max_customers_in_store_per_sqm", '
                              'you need to specify the floor area via the "floorarea" parameter in the config.')
 
-    popular_hours = load_popular_hours()
-
-
-
-
     # Set up environment and run
     env = simpy.Environment()
     store = Store(env, G, max_customers_in_store=max_customers_in_store, logging_enabled=logging_enabled)
@@ -41,7 +37,7 @@ def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_ge
         node_capacity = config.get('node_capacity', 2)
         store.enable_node_capacity(node_capacity)
     path_generator = path_generator_function(*path_generator_args)
-    env.process(_customer_arrivals(env, store, path_generator, config, popular_hours))
+    env.process(_customer_arrivals(env, store, path_generator, config, popular_hours, num_hours_open))
     env.process(_stats_recorder(store))
     env.run(until=num_hours_open * 60 * 10)
 
@@ -115,11 +111,20 @@ def simulate_several_days(config: dict,
                 for i, results_dict in enumerate(p.istarmap(simulate_one_day, repeated_args)):
                     results.append(results_dict)
                     pbar.update()
+                    if config['day'] >= 6:
+                        config['day'] = 0
+                    else:
+                        config['day'] += 1
     else:
         results = []
         for _ in tqdm(range(num_iterations)):
             results_dict = simulate_one_day(config, G, path_generator_function, path_generator_args)
             results.append(results_dict)
+            if config['day'] >= 6:
+                config['day'] = 0
+            else:
+                config['day'] += 1
+
 
     # Initialize containers to save any scalar statistics
     df_num_encounters_per_node_list = []
