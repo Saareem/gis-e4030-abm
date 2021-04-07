@@ -246,7 +246,8 @@ def customer(env: simpy.Environment, customer_id: int, infected: bool, store: St
             return
 
         if my_turn_to_enter in result:
-            store.log(f'Customer {customer_id} enters the shop after waiting {wait :.2f} min with shopping path {path}.')
+            store.log(
+                f'Customer {customer_id} enters the shop after waiting {wait :.2f} min with shopping path {path}.')
             start_node = path[0]
             store.add_customer(customer_id, start_node, infected, wait)
             for start, end in zip(path[:-1], path[1:]):
@@ -259,6 +260,60 @@ def customer(env: simpy.Environment, customer_id: int, infected: bool, store: St
             store.remove_customer(customer_id, path[-1], infected)
 
 
+def two_customers(env: simpy.Environment, customer_id: int, infected: bool, store: Store, path: List[int],
+                  traversal_time: float, thres: int = 50):
+    """
+    Simpy process simulating group of TWO customers
+
+    :param env: Simpy environment on which the simulation runs
+    :param customer_id: ID of customer
+    :param infected: True if infected
+    :param store: Store object
+    :param path: Assigned customer shopping path
+    :param traversal_time: Mean time before moving to the next node in path (also called waiting time)
+    :param thres: Threshold length of queue outside. If queue exceeds threshold, customer does not enter
+    the queue and leaves.
+    """
+
+    arrive = env.now
+
+    if store.num_customers_waiting_outside > thres:
+        store.log(f'Customers {customer_id} and {customer_id + 1} does not queue up, since we have over' +
+                  f' {thres} customers waiting outside ' + f'({store.num_customers_waiting_outside})')
+        return
+    else:
+        store.num_customers_waiting_outside += 2
+
+    with store.counter.request() as my_turn_to_enter:
+        result = yield my_turn_to_enter | store.is_closed_event
+        store.num_customers_waiting_outside -= 2
+        wait = env.now - arrive
+
+        if my_turn_to_enter not in result:
+            store.log(f'Customers {customer_id} and {customer_id + 1} leave the queue after waiting +'
+                      f'{wait:.2f} min, as shop is closed')
+            return
+
+        if my_turn_to_enter in result:
+            store.log(f'Customers {customer_id} and {customer_id + 1} enter the shop after waiting +'
+                      f'{wait :.2f} min with shopping path {path}.')
+            start_node = path[0]
+            store.add_customer(customer_id, start_node, infected, wait)
+            store.add_customer(customer_id + 1, start_node, infected, wait)
+            for start, end in zip(path[:-1], path[1:]):
+                store.customers_next_zone[customer_id] = end
+                store.customers_next_zone[customer_id + 1] = end
+                has_moved = False
+                has_moved1 = False
+                while not has_moved and not has_moved1:  # If they haven't moved, wait a bit
+                    yield env.timeout(random.expovariate(1 / traversal_time))
+                    has_moved = store.move_customer(customer_id, infected, start, end)
+                    has_moved1 = store.move_customer(customer_id + 1, infected, start, end)
+            yield env.timeout(random.expovariate(1 / traversal_time))  # wait before leaving the store
+            store.remove_customer(customer_id, path[-1], infected)
+            store.remove_customer(customer_id + 1, path[-1], infected)
+
+
 def _stats_recorder(store: Store):
     store.stats['num_customers_in_store'] = {}
     env = store.env
@@ -267,7 +322,8 @@ def _stats_recorder(store: Store):
         yield env.timeout(10)
 
 
-def _customer_arrivals(env: simpy.Environment, store: Store, path_generator, config: dict, popular_hours, num_hours_open):
+def _customer_arrivals(env: simpy.Environment, store: Store, path_generator, config: dict, popular_hours,
+                       num_hours_open):
     """Process that creates all customers."""
     hour_nro = 0
     arrival_rate = config['arrival_rate'] * popular_hours[hour_nro] / popular_hours.mean()
@@ -279,9 +335,17 @@ def _customer_arrivals(env: simpy.Environment, store: Store, path_generator, con
     while env.now < num_hours_open * 60:
         infected = np.random.rand() < infection_proportion
         path = path_generator.__next__()
-        env.process(customer(env, customer_id, infected, store, path, traversal_time))
-        customer_id += 1
-        if env.now / 60 >= hour_nro +1:
+
+        # Some customers arrive together
+        if customer_id % int(1 / config['customers_together']) == 0:
+            env.process(two_customers(env, customer_id, infected, store, path, traversal_time))
+            customer_id += 2
+        else:
+            env.process(customer(env, customer_id, infected, store, path, traversal_time))
+            customer_id += 1
+
+        # Change arrival rate every hour
+        if env.now / 60 >= hour_nro + 1:
             hour_nro += 1
             arrival_rate = config['arrival_rate'] * popular_hours[hour_nro] / popular_hours.mean()
         yield env.timeout(random.expovariate(arrival_rate))
@@ -306,7 +370,7 @@ def _sanity_checks(store: Store,
         assert max(customers_at_nodes) == 0, \
             f"{sum(customers_at_nodes)} customers have not left the store. {store.infected_customers_at_nodes}"
         assert max([len(val) for val in store.customers_at_nodes.values()]) == 0, \
-        f"{sum(customers_at_nodes)} customers have not left the store. {store.customers_at_nodes}"
+            f"{sum(customers_at_nodes)} customers have not left the store. {store.customers_at_nodes}"
         assert set(store.waiting_times.keys()) == set(store.customers), \
             'Some customers are not recorded in waiting times (or vice versa)'
         assert all([val >= 0 for val in store.waiting_times.values()]), \

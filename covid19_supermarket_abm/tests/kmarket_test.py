@@ -8,7 +8,8 @@ config = {'arrival_rate': 2.55,
           'traversal_time': 0.2,
           'infection_proportion': 0.0011,
           "logging_enabled": True,
-          "day": 0} # 0 = Monday, ..., 6 = Sunday
+          'day': 6, # 0 = Monday, ..., 6 = Sunday
+          'customers_together': 0.2}  # Proportion between [0,1]
 
 synthetic = True
 type = "empirical"
@@ -39,4 +40,4 @@ path_generator_function, path_generator_args = get_path_generator(path_generatio
 # Simulate a day and store results in results
 results_dict = simulate_one_day(config, G, path_generator_function, path_generator_args)
 #results_dict = simulate_several_days(config, G, path_generator_function, path_generator_args, num_iterations=10, use_parallel=False)
-#print(results_dict["logs"])
+#(results_dict["logs"])
