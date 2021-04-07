@@ -270,7 +270,7 @@ def _stats_recorder(store: Store):
 def _customer_arrivals(env: simpy.Environment, store: Store, path_generator, config: dict, popular_hours, num_hours_open):
     """Process that creates all customers."""
     hour_nro = 0
-    arrival_rate = config['arrival_rate'] * popular_hours[hour_nro] / 0.56 # 0.56 is hard-coded mean of popularity
+    arrival_rate = config['arrival_rate'] * popular_hours[hour_nro] / popular_hours.mean()
     infection_proportion = config['infection_proportion']
     traversal_time = config['traversal_time']
     customer_id = 0
@@ -283,7 +283,7 @@ def _customer_arrivals(env: simpy.Environment, store: Store, path_generator, con
         customer_id += 1
         if env.now / 60 >= hour_nro +1:
             hour_nro += 1
-            arrival_rate = config['arrival_rate'] * popular_hours[hour_nro] / 0.56
+            arrival_rate = config['arrival_rate'] * popular_hours[hour_nro] / popular_hours.mean()
         yield env.timeout(random.expovariate(arrival_rate))
     store.close_store()
 
