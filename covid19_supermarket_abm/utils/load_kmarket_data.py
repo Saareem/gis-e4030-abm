@@ -30,7 +30,7 @@ def load_kmarket_store_graph(directed: bool = False) -> nx.Graph:
     df_zone = load_kmarket_zones()
 
     # Load graph
-    edge_list_path = os.path.join(data_dir, f'edgelist_kmarket{graph_suffix}.tsv')
+    edge_list_path = os.path.join(data_dir, f'oneway_edges{graph_suffix}.tsv')
     G = nx.read_edgelist(edge_list_path, nodetype=int, create_using=create_using)
     pos = {node: (x, -y) for node, x, y in df_zone.loc[:, ['id', 'x', 'y']].values}
 

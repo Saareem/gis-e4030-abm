@@ -23,7 +23,7 @@ G = load_kmarket_store_graph()
 shortest_path_dict = get_all_shortest_path_dicts(G)
 
 # Create a path generator which feeds our model with customer paths
-item_nodes = [i for i in range(1, 106) if not i in [1, 23, 52, 55]]
+item_nodes = [i for i in range(1, 106) if not i in [1, 2, 3, 23, 51, 52, 53, 54, 55]]
 path_generator_function, path_generator_args = get_path_generator(path_generation = type,
                                                                   zone_paths = zone_paths,
                                                                   G=G,
@@ -31,7 +31,7 @@ path_generator_function, path_generator_args = get_path_generator(path_generatio
                                                                       1,
                                                                       1,
                                                                       [1],
-                                                                      [23, 52],
+                                                                      [51, 52],
                                                                       [55],
                                                                       item_nodes,
                                                                       shortest_path_dict
@@ -40,4 +40,4 @@ path_generator_function, path_generator_args = get_path_generator(path_generatio
 # Simulate a day and store results in results
 results_dict = simulate_one_day(config, G, path_generator_function, path_generator_args)
 #results_dict = simulate_several_days(config, G, path_generator_function, path_generator_args, num_iterations=10, use_parallel=False)
-#(results_dict["logs"])
+print((results_dict["logs"]))
