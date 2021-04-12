@@ -74,7 +74,18 @@ def sample_num_products_in_basket_batch(mu, sigma, num_baskets):
     return num_items[:num_baskets]
 
 
-def create_random_item_paths(num_items, entrance_nodes, till_nodes, exit_nodes, item_nodes):
+def weights_to_p(weights, item_nodes):
+    p = []
+    for node in item_nodes:
+        if node in weights:
+            p.append(weights[node])
+        else:
+            p.append(0.0)
+    diff = 1.0 - sum(p)
+    p[0] += diff
+    return p
+
+def create_random_item_paths(num_items, entrance_nodes, till_nodes, exit_nodes, item_nodes, weights = None):
     """
     Create random item path based on the number of items in each basket and the shelves were items are located.
     We choose items uniformly at random from all item_nodes.
@@ -85,7 +96,12 @@ def create_random_item_paths(num_items, entrance_nodes, till_nodes, exit_nodes, 
     random_entrance_nodes = np.random.choice(entrance_nodes, size=num_baskets)
     random_till_nodes = np.random.choice(till_nodes, size=num_baskets)
     random_exit_nodes = np.random.choice(exit_nodes, size=num_baskets)
-    concatenated_baskets = np.random.choice(item_nodes, size=np.sum(num_items))
+    concatenated_baskets = []
+    if weights is None:
+        concatenated_baskets = np.random.choice(item_nodes, size=np.sum(num_items))
+    else:
+        p = weights_to_p(weights, item_nodes)
+        concatenated_baskets = np.random.choice(item_nodes, size=np.sum(num_items), p = p)
     break_points = np.cumsum(num_items)
     item_paths = []
     start = 0
@@ -102,7 +118,7 @@ def create_random_item_paths(num_items, entrance_nodes, till_nodes, exit_nodes, 
 
 
 def sythetic_paths_generator(mu, sigma, entrance_nodes, till_nodes, exit_nodes, item_nodes,
-                                                shortest_path_dict, batch_size=1000):
+                                                shortest_path_dict, weights = None, batch_size=1000):
     """The synthetic path generator generates a random customer path as follows:
     First, it samples the size K of the shopping basket using a log-normal random variable with parameter mu and sigma.
     Second, it chooses a random entrance node as the first node v_1 in the path.
@@ -121,7 +137,7 @@ def sythetic_paths_generator(mu, sigma, entrance_nodes, till_nodes, exit_nodes, 
 
     while True:
         num_items = sample_num_products_in_basket_batch(mu, sigma, batch_size)
-        item_paths = create_random_item_paths(num_items, entrance_nodes, till_nodes, exit_nodes, item_nodes)
+        item_paths = create_random_item_paths(num_items, entrance_nodes, till_nodes, exit_nodes, item_nodes, weights = weights)
         for item_path in item_paths:
             full_path = zone_path_to_full_path_multiple_paths(item_path, shortest_path_dict)
             yield full_path
@@ -186,7 +202,7 @@ def get_path_generator(path_generation: str = 'empirical', G: Optional[nx.Graph]
             "If you use path_generation='synthetic', " \
             "you need to input synthetic_path_generator_args=" \
             "[mu, sigma, entrance_nodes, till_nodes, exit_nodes, item_nodes, shortest_path_dict]"
-        assert len(synthetic_path_generator_args) == 7, \
+        assert len(synthetic_path_generator_args) in [7, 8], \
             "If you use path_generation='synthetic', " \
             "you need to input synthetic_path_generator_args=" \
             "[mu, sigma, entrance_nodes, till_nodes, exit_nodes, item_nodes, shortest_path_dict]"

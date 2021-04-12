@@ -24,10 +24,10 @@ def sample_num_products_in_basket_batch(mu, sigma, num_baskets):
     return num_items[:num_baskets]
 
 
-def create_random_item_paths(num_items, entrance_nodes, till_nodes, exit_nodes, item_nodes):
+def create_random_item_paths(num_items, entrance_nodes, till_nodes, exit_nodes, item_nodes, weights = None):
     """
     Create random item path based on the number of items in each basket and the shelves were items are located.
-    We choose items uniformly at random from all item_nodes.
+    We choose items uniformly or with probabilities defined in the weights-argument at random from all item_nodes.
     We also choose a random entrance node, till node, and exit node (sampled uniformly at random from the
     corresponding nodes).
     """
