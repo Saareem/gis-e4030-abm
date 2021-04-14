@@ -14,6 +14,8 @@ from covid19_supermarket_abm.utils.load_kmarket_data import load_popular_hours
 
 def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_generator_args: list):
     # Get parameters
+    if 'day' not in config:
+        config['day'] = 0
     popular_hours = load_popular_hours().iloc[:, config['day']]
     num_hours_open = popular_hours.count()
     logging_enabled = config.get('logging_enabled', False)
@@ -124,7 +126,6 @@ def simulate_several_days(config: dict,
                 config['day'] = 0
             else:
                 config['day'] += 1
-
 
     # Initialize containers to save any scalar statistics
     df_num_encounters_per_node_list = []

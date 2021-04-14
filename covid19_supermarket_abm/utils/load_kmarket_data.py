@@ -130,5 +130,9 @@ def plot_shelves(shelves, ax: Optional[plt.axes] = None, color: str = '#C0C0C0',
 
 def load_popular_hours():
     # Get popular hours of the market from google data // Alpo
-    kmarket_hours = pd.read_csv(os.path.join(data_dir, f'kmarket_popular_hours.txt'), sep='\t', header=None)
-    return kmarket_hours / 100
+    try:
+        kmarket_hours = pd.read_csv(os.path.join(data_dir, f'kmarket_popular_hours.txt'), sep='\t', header=None)
+        return kmarket_hours / 100
+    except FileNotFoundError:
+        print("No popular hours file. Default value used.")
+        return np.ones((16, 7), dtype=int)

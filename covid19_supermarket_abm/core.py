@@ -329,6 +329,8 @@ def _customer_arrivals(env: simpy.Environment, store: Store, path_generator, con
     arrival_rate = config['arrival_rate'] * popular_hours[hour_nro] / popular_hours.mean()
     infection_proportion = config['infection_proportion']
     traversal_time = config['traversal_time']
+    if 'customers_together' not in config:
+        config['customers_together'] = 0.2
     customer_id = 0
     store.open_store()
     yield env.timeout(random.expovariate(arrival_rate))
