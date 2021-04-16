@@ -6,7 +6,7 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import simpy
-from covid19_supermarket_abm.core import Store, _customer_arrivals, _stats_recorder, \
+from covid19_supermarket_abm.core import Store, _agent_arrivals, _stats_recorder, \
     _sanity_checks
 from tqdm import tqdm
 from covid19_supermarket_abm.utils.load_kmarket_data import load_popular_hours
@@ -32,20 +32,24 @@ def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_ge
             raise ValueError('If you set the parameter "max_customers_in_store_per_sqm", '
                              'you need to specify the floor area via the "floorarea" parameter in the config.')
 
+    if 'n_staff' not in config:
+        config['n_staff'] = 0
+
     # Set up environment and run
     env = simpy.Environment()
-    store = Store(env, G, max_customers_in_store=max_customers_in_store, logging_enabled=logging_enabled)
+    store = Store(env, G, max_customers_in_store=max_customers_in_store, logging_enabled=logging_enabled,
+                  n_staff=config['n_staff'])
     if with_node_capacity:
         node_capacity = config.get('node_capacity', 2)
         store.enable_node_capacity(node_capacity)
     path_generator = path_generator_function(*path_generator_args)
-    env.process(_customer_arrivals(env, store, path_generator, config, popular_hours, num_hours_open))
+    env.process(_agent_arrivals(env, store, path_generator, config, popular_hours, num_hours_open))
     env.process(_stats_recorder(store))
     env.run(until=num_hours_open * 60 * 10)
 
     # Record stats
     _sanity_checks(store, raise_test_error=raise_test_error)
-    num_cust = len(store.customers)
+    num_cust = len(store.customers[config['n_staff']:])
     num_S = len(store.number_encounters_with_infected)
     shopping_times = list(store.shopping_times.values())
     waiting_times = np.array(list(store.waiting_times.values()))

@@ -14,19 +14,25 @@ class Store(object):
 
     def __init__(self, env: simpy.Environment, G: nx.Graph, max_customers_in_store: Optional[int] = None,
                  logging_enabled: bool = False,
-                 logger: Optional[logging._loggerClass] = None):
+                 logger: Optional[logging._loggerClass] = None, n_staff: Optional[int] = 0):
         """
 
         :param env: Simpy environment on which the simulation runs
         :param G: Store graph
         :param logging_enabled: Toggle to True to log all simulation outputs
         :param max_customers_in_store: Maximum number of customers in the store
+        :param n_staff: Number of staff members in the store. Defaults to 0.
         """
+        self.n_staff = n_staff
         self.G = G.copy()
         self.customers_at_nodes = {node: [] for node in self.G}
+        self.agents_at_nodes = {node: [] for node in self.G}
         self.infected_customers_at_nodes = {node: [] for node in self.G}
+        self.infected_agents_at_nodes = {node: [] for node in self.G}
         self.customers = []
+        self.agents = []
         self.infected_customers = []
+        self.infected_agents = []
         self.env = env
         self.number_encounters_with_infected = {}
         self.number_encounters_per_node = {node: 0 for node in self.G}
@@ -35,9 +41,11 @@ class Store(object):
         self.shopping_times = {}
         self.waiting_times = {}
         self.customers_next_zone = {}  # maps customer to the next zone that it wants to go
+        self.agents_next_zone = {}
         self.is_open = True
         self.is_closed_event = self.env.event()
         self.time_with_infected_per_customer = {}
+        self.time_with_infected_per_agent = {}
         self.time_with_infected_per_node = {node: 0 for node in self.G}
         self.node_arrival_time_stamp = {}
         self.num_customers_waiting_outside = 0
@@ -119,6 +127,25 @@ class Store(object):
         else:
             self.infected_customers.append(customer_id)
         self._customer_arrival(customer_id, start_node, infected)
+
+    def add_agent(self, agent_id: int, start_node: int, infected: bool, wait: Optional[float] = 0):
+        self.arrival_times[agent_id] = self.env.now
+        if agent_id < self.n_staff:
+            self.log(f'New staff member {agent_id} starts a shift. ' +
+                     f'({infected * "infected"}{(not infected) * "susceptible"})')
+            self.waiting_times[agent_id] = 0
+        else:
+            self.log(f'New customer {agent_id} arrives at the store. ' +
+                     f'({infected * "infected"}{(not infected) * "susceptible"})')
+            self.waiting_times[agent_id] = wait
+        self.customers.append(agent_id)
+        if not infected:
+            # Increase counter
+            self.number_encounters_with_infected[agent_id] = 0
+            self.time_with_infected_per_customer[agent_id] = 0
+        else:
+            self.infected_customers.append(agent_id)
+        self._customer_arrival(agent_id, start_node, infected)
 
     def infect_other_customers_at_node(self, customer_id: int, node: int):
         other_suspectible_customers = [other_customer for other_customer in self.customers_at_nodes[node] if
@@ -249,7 +276,7 @@ def customer(env: simpy.Environment, customer_id: int, infected: bool, store: St
             store.log(
                 f'Customer {customer_id} enters the shop after waiting {wait :.2f} min with shopping path {path}.')
             start_node = path[0]
-            store.add_customer(customer_id, start_node, infected, wait)
+            store.add_agent(customer_id, start_node, infected, wait)
             for start, end in zip(path[:-1], path[1:]):
                 store.customers_next_zone[customer_id] = end
                 has_moved = False
@@ -298,8 +325,8 @@ def two_customers(env: simpy.Environment, customer_id: int, infected: bool, stor
             store.log(f'Customers {customer_id} and {customer_id + 1} enter the shop after waiting +'
                       f'{wait :.2f} min with shopping path {path}.')
             start_node = path[0]
-            store.add_customer(customer_id, start_node, infected, wait)
-            store.add_customer(customer_id + 1, start_node, infected, wait)
+            store.add_agent(customer_id, start_node, infected, wait)
+            store.add_agent(customer_id + 1, start_node, infected, wait)
             for start, end in zip(path[:-1], path[1:]):
                 store.customers_next_zone[customer_id] = end
                 store.customers_next_zone[customer_id + 1] = end
@@ -322,9 +349,9 @@ def _stats_recorder(store: Store):
         yield env.timeout(10)
 
 
-def _customer_arrivals(env: simpy.Environment, store: Store, path_generator, config: dict, popular_hours,
-                       num_hours_open):
-    """Process that creates all customers."""
+def _agent_arrivals(env: simpy.Environment, store: Store, path_generator, config: dict, popular_hours,
+                    num_hours_open, n_staff: Optional[int] = 0):
+    """Process that creates all agents."""
     hour_nro = 0
     arrival_rate = config['arrival_rate'] * popular_hours[hour_nro] / popular_hours.mean()
     infection_proportion = config['infection_proportion']
@@ -352,6 +379,9 @@ def _customer_arrivals(env: simpy.Environment, store: Store, path_generator, con
             arrival_rate = config['arrival_rate'] * popular_hours[hour_nro] / popular_hours.mean()
         yield env.timeout(random.expovariate(arrival_rate))
     store.close_store()
+
+#def _agent_arrivals(env: simpy.Environment, store: Store, cust_path_generator, config: dict, popular_hours,
+                       #num_hours_open, n_staff: Optional[int] = 0):
 
 
 def _sanity_checks(store: Store,
