@@ -287,6 +287,26 @@ def customer(env: simpy.Environment, customer_id: int, infected: bool, store: St
             store.remove_customer(customer_id, path[-1], infected)
 
 
+def staff_member(env: simpy.Environment, staff_id: int, infected: bool, store: Store, traversal_time: float, path: List[int]):
+    """
+    Simpy process simulating a member of staff
+
+    :param env: Simpy environment on which the simulation runs
+    :param staff_id: ID of customer
+    :param infected: True if infected
+    :param store: Store object
+    :param traversal_time: Mean time before moving to the next node in path (also called waiting time)
+    """
+    for start, end in zip(path[:-1], path[1:]):
+        store.customers_next_zone[staff_id] = end
+        has_moved = False
+        while not has_moved:  # If it hasn't moved, wait a bit
+            yield env.timeout(random.expovariate(1 / traversal_time))
+            has_moved = store.move_customer(staff_id, infected, start, end)
+    yield env.timeout(random.expovariate(1 / traversal_time))  # wait before leaving the store
+    store.remove_customer(staff_id, path[-1], infected)
+
+
 def two_customers(env: simpy.Environment, customer_id: int, infected: bool, store: Store, path: List[int],
                   traversal_time: float, thres: int = 50):
     """
@@ -357,7 +377,7 @@ def _agent_arrivals(env: simpy.Environment, store: Store, path_generator, config
     infection_proportion = config['infection_proportion']
     traversal_time = config['traversal_time']
     if 'customers_together' not in config:
-        config['customers_together'] = 0.2
+        config['customers_together'] = 0
     customer_id = 0
     store.open_store()
     yield env.timeout(random.expovariate(arrival_rate))
@@ -379,9 +399,6 @@ def _agent_arrivals(env: simpy.Environment, store: Store, path_generator, config
             arrival_rate = config['arrival_rate'] * popular_hours[hour_nro] / popular_hours.mean()
         yield env.timeout(random.expovariate(arrival_rate))
     store.close_store()
-
-#def _agent_arrivals(env: simpy.Environment, store: Store, cust_path_generator, config: dict, popular_hours,
-                       #num_hours_open, n_staff: Optional[int] = 0):
 
 
 def _sanity_checks(store: Store,
