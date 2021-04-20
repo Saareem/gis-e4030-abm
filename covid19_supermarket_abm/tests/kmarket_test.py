@@ -3,6 +3,7 @@ from covid19_supermarket_abm.path_generators import get_path_generator
 from covid19_supermarket_abm.utils.create_synthetic_baskets import get_all_shortest_path_dicts
 from covid19_supermarket_abm.simulator import simulate_one_day, simulate_several_days
 from covid19_supermarket_abm.utils.create_weights import create_weights
+from covid19_supermarket_abm.utils.node_visibility import node_visibility
 
 # Set parameters
 config = {'arrival_rate': 2.55,
@@ -19,6 +20,8 @@ config = {'arrival_rate': 2.55,
 zone_paths = load_example_paths()
 G = load_kmarket_store_graph()
 shortest_path_dict = get_all_shortest_path_dicts(G)
+node_visibility = node_visibility(G)
+print(node_visibility)
 
 # Create a path generator which feeds our model with customer paths
 weights = create_weights(random_weights = False)
