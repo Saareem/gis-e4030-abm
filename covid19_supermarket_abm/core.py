@@ -167,7 +167,7 @@ class Store(object):
             self.number_encounters_per_node[node] += num_infected_here
 
     def _agent_arrival(self, agent_id: int, node: int, infected: bool):
-        """Process a customer arriving at a node."""
+        """Process an agent arriving at a node."""
         self.agents_at_nodes[node].append(agent_id)
         self.node_arrival_time_stamp[agent_id] = self.env.now
         if infected:
@@ -289,7 +289,7 @@ def staff_member(env: simpy.Environment, staff_id: int, infected: bool, store: S
     Simpy process simulating a member of staff
 
     :param env: Simpy environment on which the simulation runs
-    :param staff_id: ID of customer
+    :param staff_id: ID of agent
     :param infected: True if infected
     :param store: Store object
     :param traversal_time: Mean time before moving to the next node in path (also called waiting time)
