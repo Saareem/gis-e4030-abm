@@ -27,11 +27,8 @@ class Store(object):
         self.G = G.copy()
         self.customers_at_nodes = {node: [] for node in self.G}
         self.agents_at_nodes = {node: [] for node in self.G}
-        self.infected_customers_at_nodes = {node: [] for node in self.G}
         self.infected_agents_at_nodes = {node: [] for node in self.G}
-        self.customers = []
         self.agents = []
-        self.infected_customers = []
         self.infected_agents = []
         self.env = env
         self.number_encounters_with_infected = {}
@@ -40,11 +37,9 @@ class Store(object):
         self.exit_times = {}
         self.shopping_times = {}
         self.waiting_times = {}
-        self.customers_next_zone = {}  # maps customer to the next zone that it wants to go
-        self.agents_next_zone = {}
+        self.agents_next_zone = {}  # maps agent to the next zone that it wants to go
         self.is_open = True
         self.is_closed_event = self.env.event()
-        self.time_with_infected_per_customer = {}
         self.time_with_infected_per_agent = {}
         self.time_with_infected_per_node = {node: 0 for node in self.G}
         self.node_arrival_time_stamp = {}
@@ -73,7 +68,7 @@ class Store(object):
         self.stats = {}
 
     def open_store(self):
-        assert len(self.customers) == 0, "Customers are already in the store before the store is open"
+        assert len(self.agents) == 0, "Customers are already in the store before the store is open"
         self.is_open = True
 
     def close_store(self):
@@ -89,6 +84,9 @@ class Store(object):
     def number_customers_in_store(self):
         return sum([len(cus) for cus in list(self.customers_at_nodes.values())])
 
+    def get_customer_count(self) -> int:
+        return len(self.agents[self.n_staff:])
+
     def move_customer(self, customer_id: int, infected: bool, start: int, end: int) -> bool:
         if self.check_valid_move(start, end):
             if start == end:  # start == end
@@ -96,7 +94,7 @@ class Store(object):
                 self.log(f'Customer {customer_id} stays at present location to buy something.')
                 has_moved = True
             elif self.with_node_capacity and len(self.customers_at_nodes[end]) >= self.node_capacity \
-                    and start not in [self.customers_next_zone[cust] for cust in self.customers_at_nodes[end]]:
+                    and start not in [self.agents_next_zone[cust] for cust in self.customers_at_nodes[end]]:
                 # Wait if next node is occupied and doesn't work.
                 self.log(f'Customer {customer_id} is waiting at {start}, ' +
                          f'since the next node {end} is full. [{self.customers_at_nodes[end]}]')
@@ -119,13 +117,13 @@ class Store(object):
                  f'({infected * "infected"}{(not infected) * "susceptible"})')
         self.arrival_times[customer_id] = self.env.now
         self.waiting_times[customer_id] = wait
-        self.customers.append(customer_id)
+        self.agents.append(customer_id)
         if not infected:
             # Increase counter
             self.number_encounters_with_infected[customer_id] = 0
-            self.time_with_infected_per_customer[customer_id] = 0
+            self.time_with_infected_per_agent[customer_id] = 0
         else:
-            self.infected_customers.append(customer_id)
+            self.infected_agents.append(customer_id)
         self._customer_arrival(customer_id, start_node, infected)
 
     def add_agent(self, agent_id: int, start_node: int, infected: bool, wait: Optional[float] = 0):
@@ -138,18 +136,18 @@ class Store(object):
             self.log(f'New customer {agent_id} arrives at the store. ' +
                      f'({infected * "infected"}{(not infected) * "susceptible"})')
             self.waiting_times[agent_id] = wait
-        self.customers.append(agent_id)
+        self.agents.append(agent_id)
         if not infected:
             # Increase counter
             self.number_encounters_with_infected[agent_id] = 0
-            self.time_with_infected_per_customer[agent_id] = 0
+            self.time_with_infected_per_agent[agent_id] = 0
         else:
-            self.infected_customers.append(agent_id)
+            self.infected_agents.append(agent_id)
         self._customer_arrival(agent_id, start_node, infected)
 
     def _infect_other_agents_at_node(self, agent_id: int, node: int):
         other_susceptible_agents = [other_agent for other_agent in self.customers_at_nodes[node] if
-                                    other_agent not in self.infected_customers_at_nodes[node]]
+                                    other_agent not in self.infected_agents_at_nodes[node]]
         if len(other_susceptible_agents) > 0:
             self.log(
                 f'Infected agent {agent_id} arrived in {node} and' +
@@ -159,13 +157,13 @@ class Store(object):
             self.number_encounters_per_node[node] += 1
 
     def _get_infected_by_other_agents_at_node(self, agent_id: int, node: int):
-        num_infected_here = len(self.infected_customers_at_nodes[node])
+        num_infected_here = len(self.infected_agents_at_nodes[node])
 
         # Track number of infected agents
         if num_infected_here > 0:
             self.log(
                 f'Agent {agent_id} is in at zone {node} with {num_infected_here} infected people.' +
-                f' ({self.infected_customers_at_nodes[node]})')
+                f' ({self.infected_agents_at_nodes[node]})')
             self.number_encounters_with_infected[agent_id] += num_infected_here
             self.number_encounters_per_node[node] += num_infected_here
 
@@ -174,7 +172,7 @@ class Store(object):
         self.customers_at_nodes[node].append(customer_id)
         self.node_arrival_time_stamp[customer_id] = self.env.now
         if infected:
-            self.infected_customers_at_nodes[node].append(customer_id)
+            self.infected_agents_at_nodes[node].append(customer_id)
             self._infect_other_agents_at_node(customer_id, node)
         else:
             self._get_infected_by_other_agents_at_node(customer_id, node)
@@ -193,19 +191,19 @@ class Store(object):
         """Process a customer departing from a node."""
         self.customers_at_nodes[node].remove(customer_id)
         if infected:
-            self.infected_customers_at_nodes[node].remove(customer_id)
+            self.infected_agents_at_nodes[node].remove(customer_id)
             s_customers = self.get_susceptible_customers_at_node(node)
             for s_cust in s_customers:
                 dt_with_infected = self.env.now - max(self.node_arrival_time_stamp[s_cust],
                                                       self.node_arrival_time_stamp[customer_id])
-                self.time_with_infected_per_customer[s_cust] += dt_with_infected
+                self.time_with_infected_per_agent[s_cust] += dt_with_infected
                 self.time_with_infected_per_node[node] += dt_with_infected
         else:
-            i_customers = self.infected_customers_at_nodes[node]
+            i_customers = self.infected_agents_at_nodes[node]
             for i_cust in i_customers:
                 dt_with_infected = self.env.now - max(self.node_arrival_time_stamp[i_cust],
                                                       self.node_arrival_time_stamp[customer_id])
-                self.time_with_infected_per_customer[customer_id] += dt_with_infected
+                self.time_with_infected_per_agent[customer_id] += dt_with_infected
                 self.time_with_infected_per_node[node] += dt_with_infected
 
         num_cust_at_node = len(self.customers_at_nodes[node])
@@ -219,7 +217,7 @@ class Store(object):
             self.node_is_crowded_since[node] = None
 
     def get_susceptible_customers_at_node(self, node):
-        return [c for c in self.customers_at_nodes[node] if c not in self.infected_customers_at_nodes[node]]
+        return [c for c in self.customers_at_nodes[node] if c not in self.infected_agents_at_nodes[node]]
 
     def remove_customer(self, customer_id: int, last_position: int, infected: bool):
         """Remove customer at exit."""
@@ -278,7 +276,7 @@ def customer(env: simpy.Environment, customer_id: int, infected: bool, store: St
             start_node = path[0]
             store.add_agent(customer_id, start_node, infected, wait)
             for start, end in zip(path[:-1], path[1:]):
-                store.customers_next_zone[customer_id] = end
+                store.agents_next_zone[customer_id] = end
                 has_moved = False
                 while not has_moved:  # If it hasn't moved, wait a bit
                     yield env.timeout(random.expovariate(1 / traversal_time))
@@ -298,7 +296,7 @@ def staff_member(env: simpy.Environment, staff_id: int, infected: bool, store: S
     :param traversal_time: Mean time before moving to the next node in path (also called waiting time)
     """
     for start, end in zip(path[:-1], path[1:]):
-        store.customers_next_zone[staff_id] = end
+        store.agents_next_zone[staff_id] = end
         has_moved = False
         while not has_moved:  # If it hasn't moved, wait a bit
             yield env.timeout(random.expovariate(1 / traversal_time))
@@ -348,8 +346,8 @@ def two_customers(env: simpy.Environment, customer_id: int, infected: bool, stor
             store.add_agent(customer_id, start_node, infected, wait)
             store.add_agent(customer_id + 1, start_node, infected, wait)
             for start, end in zip(path[:-1], path[1:]):
-                store.customers_next_zone[customer_id] = end
-                store.customers_next_zone[customer_id + 1] = end
+                store.agents_next_zone[customer_id] = end
+                store.agents_next_zone[customer_id + 1] = end
                 has_moved = False
                 has_moved1 = False
                 while not has_moved and not has_moved1:  # If they haven't moved, wait a bit
@@ -406,8 +404,8 @@ def _sanity_checks(store: Store,
                    raise_test_error=False):
     infectious_contacts_list = [i for i in store.number_encounters_with_infected.values() if i != 0]
     num_susceptible = len(store.number_encounters_with_infected)
-    num_infected = len(store.infected_customers)
-    num_cust = len(store.customers)
+    num_infected = len(store.infected_agents)
+    num_cust = len(store.agents)
 
     try:
         assert sum(infectious_contacts_list) == sum(store.number_encounters_per_node.values()), \
@@ -415,12 +413,12 @@ def _sanity_checks(store: Store,
         assert num_infected + num_susceptible == num_cust, \
             "Number of infected and susceptible customers doesn't add up to total number of customers"
 
-        customers_at_nodes = [len(val) for val in store.infected_customers_at_nodes.values()]
+        customers_at_nodes = [len(val) for val in store.infected_agents_at_nodes.values()]
         assert max(customers_at_nodes) == 0, \
-            f"{sum(customers_at_nodes)} customers have not left the store. {store.infected_customers_at_nodes}"
+            f"{sum(customers_at_nodes)} customers have not left the store. {store.infected_agents_at_nodes}"
         assert max([len(val) for val in store.customers_at_nodes.values()]) == 0, \
             f"{sum(customers_at_nodes)} customers have not left the store. {store.customers_at_nodes}"
-        assert set(store.waiting_times.keys()) == set(store.customers), \
+        assert set(store.waiting_times.keys()) == set(store.agents), \
             'Some customers are not recorded in waiting times (or vice versa)'
         assert all([val >= 0 for val in store.waiting_times.values()]), \
             'Some waiting times are negative!'

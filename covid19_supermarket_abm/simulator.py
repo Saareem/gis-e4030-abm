@@ -49,7 +49,7 @@ def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_ge
 
     # Record stats
     _sanity_checks(store, raise_test_error=raise_test_error)
-    num_cust = len(store.customers[config['n_staff']:])
+    num_cust = store.get_customer_count()
     num_S = len(store.number_encounters_with_infected)
     shopping_times = list(store.shopping_times.values())
     waiting_times = np.array(list(store.waiting_times.values()))
@@ -65,11 +65,11 @@ def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_ge
     df_num_encounters_per_node = df_num_encounters_per_node[range(len(G))]
     df_exposure_time_per_node = pd.DataFrame(store.time_with_infected_per_node, index=[0])
     df_exposure_time_per_node = df_exposure_time_per_node[range(len(G))]
-    exposure_times = [val for val in list(store.time_with_infected_per_customer.values()) if val > 0]
+    exposure_times = [val for val in list(store.time_with_infected_per_agent.values()) if val > 0]
     results = {'num_cust': num_cust,
                'num_S': num_S,
                'num_I': num_cust - num_S,
-               'total_exposure_time': sum(store.time_with_infected_per_customer.values()),
+               'total_exposure_time': sum(store.time_with_infected_per_agent.values()),
                'num_contacts_per_cust': num_contacts_per_cust,
                'num_cust_w_contact': len(num_contacts_per_cust),
                'mean_num_cust_in_store': np.mean(list(store.stats['num_customers_in_store'].values())),
