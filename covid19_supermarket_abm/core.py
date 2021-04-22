@@ -158,15 +158,15 @@ class Store(object):
             self.number_encounters_with_infected[other_customer] += 1
             self.number_encounters_per_node[node] += 1
 
-    def get_infected_by_other_customers_at_node(self, customer_id: int, node: int):
+    def _get_infected_by_other_agents_at_node(self, agent_id: int, node: int):
         num_infected_here = len(self.infected_customers_at_nodes[node])
 
-        # Track number of infected customers
+        # Track number of infected agents
         if num_infected_here > 0:
             self.log(
-                f'Customer {customer_id} is in at zone {node} with {num_infected_here} infected people.' +
+                f'Agent {agent_id} is in at zone {node} with {num_infected_here} infected people.' +
                 f' ({self.infected_customers_at_nodes[node]})')
-            self.number_encounters_with_infected[customer_id] += num_infected_here
+            self.number_encounters_with_infected[agent_id] += num_infected_here
             self.number_encounters_per_node[node] += num_infected_here
 
     def _customer_arrival(self, customer_id: int, node: int, infected: bool):
@@ -177,7 +177,7 @@ class Store(object):
             self.infected_customers_at_nodes[node].append(customer_id)
             self._infect_other_agents_at_node(customer_id, node)
         else:
-            self.get_infected_by_other_customers_at_node(customer_id, node)
+            self._get_infected_by_other_agents_at_node(customer_id, node)
         num_cust_at_node = len(self.customers_at_nodes[node])
         if num_cust_at_node >= self.crowded_thres and self.node_is_crowded_since[node] is None:
             self.log(f'Node {node} has become crowded with {num_cust_at_node} customers here.')
@@ -187,7 +187,7 @@ class Store(object):
         if infected:
             self._infect_other_agents_at_node(customer_id, node)
         else:
-            self.get_infected_by_other_customers_at_node(customer_id, node)
+            self._get_infected_by_other_agents_at_node(customer_id, node)
 
     def _customer_departure(self, customer_id: int, node: int, infected: bool):
         """Process a customer departing from a node."""
