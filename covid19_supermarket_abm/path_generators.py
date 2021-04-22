@@ -85,6 +85,7 @@ def weights_to_p(weights, item_nodes):
     p[0] += diff
     return p
 
+
 def create_random_item_paths(num_items, entrance_nodes, till_nodes, exit_nodes, item_nodes, weights = None):
     """
     Create random item path based on the number of items in each basket and the shelves were items are located.

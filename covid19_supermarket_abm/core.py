@@ -23,7 +23,7 @@ class Store(object):
         :param max_customers_in_store: Maximum number of customers in the store
         :param n_staff: Number of staff members in the store. Defaults to 0.
         """
-        self.n_staff = n_staff
+        self.n_staff = max(0, n_staff)  # So that nobody enters negative number
         self.G = G.copy()
         self.agents_at_nodes = {node: [] for node in self.G}
         self.infected_agents_at_nodes = {node: [] for node in self.G}
@@ -86,23 +86,23 @@ class Store(object):
     def get_customer_count(self) -> int:
         return len(self.agents[self.n_staff:])
 
-    def move_customer(self, customer_id: int, infected: bool, start: int, end: int) -> bool:
+    def _move_agent(self, agent_id: int, infected: bool, start: int, end: int) -> bool:
         if self.check_valid_move(start, end):
             if start == end:  # start == end
-                self._customer_wait(customer_id, start, infected)
-                self.log(f'Customer {customer_id} stays at present location to buy something.')
+                self._agent_wait(agent_id, start, infected)
+                self.log(f'Customer {agent_id} stays at present location to buy something.')
                 has_moved = True
             elif self.with_node_capacity and len(self.agents_at_nodes[end]) >= self.node_capacity \
                     and start not in [self.agents_next_zone[cust] for cust in self.agents_at_nodes[end]]:
                 # Wait if next node is occupied and doesn't work.
-                self.log(f'Customer {customer_id} is waiting at {start}, ' +
+                self.log(f'Customer {agent_id} is waiting at {start}, ' +
                          f'since the next node {end} is full. [{self.agents_at_nodes[end]}]')
-                self._customer_wait(customer_id, start, infected)
+                self._agent_wait(agent_id, start, infected)
                 has_moved = False
             else:
-                self.log(f'Customer {customer_id} is moving from {start} to {end}.')
-                self._customer_departure(customer_id, start, infected)
-                self._agent_arrival(customer_id, end, infected)
+                self.log(f'Customer {agent_id} is moving from {start} to {end}.')
+                self._customer_departure(agent_id, start, infected)
+                self._agent_arrival(agent_id, end, infected)
                 has_moved = True
         else:
             raise ValueError(f'{start} -> {end} is not a valid transition in the graph!')
@@ -112,23 +112,27 @@ class Store(object):
         return self.G.has_edge(start, end) or start == end
 
     def add_customer(self, customer_id: int, start_node: int, infected: bool, wait: float):
-        self.log(f'New customer {customer_id} arrives at the store. ' +
-                 f'({infected * "infected"}{(not infected) * "susceptible"})')
-        self.arrival_times[customer_id] = self.env.now
-        self.waiting_times[customer_id] = wait
-        self.agents.append(customer_id)
-        if not infected:
-            # Increase counter
-            self.number_encounters_with_infected[customer_id] = 0
-            self.time_with_infected_per_agent[customer_id] = 0
-        else:
-            self.infected_agents.append(customer_id)
-        self._agent_arrival(customer_id, start_node, infected)
+        """
+        Adds customer to the store. Exists for background compatibility reasons.
+        @param customer_id: The ID of the customer
+        @param start_node: The node where the customer starts
+        @param infected: Whether the customer is infected or not
+        @param wait: time to wait outside the store in the que if the store capacity is reached
+        """
+        self.add_agent(self, customer_id, start_node, infected, wait)
 
     def add_agent(self, agent_id: int, start_node: int, infected: bool, wait: Optional[float] = 0):
+        """
+        Adds an agent into the store. The agent can currently be either staff member or a customer. A staff member will
+        have id < n_staff if n_staff != 0 and customers will have id >= n_staff
+        @param agent_id: ID of the agent that is added
+        @param start_node: the node where the agent starts
+        @param infected: Whether the agent is infected or not
+        @param wait: Optional
+        """
         self.arrival_times[agent_id] = self.env.now
         if agent_id < self.n_staff:
-            self.log(f'New staff member {agent_id} starts a shift. ' +
+            self.log(f'New staff member {agent_id} starts shift. ' +
                      f'({infected * "infected"}{(not infected) * "susceptible"})')
             self.waiting_times[agent_id] = 0
         else:
@@ -145,23 +149,25 @@ class Store(object):
         self._agent_arrival(agent_id, start_node, infected)
 
     def _infect_other_agents_at_node(self, agent_id: int, node: int):
+        agent_type = "staff member" if agent_id < self.n_staff else "customer"
         other_susceptible_agents = [other_agent for other_agent in self.agents_at_nodes[node] if
                                     other_agent not in self.infected_agents_at_nodes[node]]
         if len(other_susceptible_agents) > 0:
             self.log(
-                f'Infected agent {agent_id} arrived in {node} and' +
+                f'Infected {agent_type} {agent_id} arrived in {node} and' +
                 f' met {len(other_susceptible_agents)} agents')
-        for other_customer in other_susceptible_agents:
-            self.number_encounters_with_infected[other_customer] += 1
+        for other_agent in other_susceptible_agents:
+            self.number_encounters_with_infected[other_agent] += 1
             self.number_encounters_per_node[node] += 1
 
     def _get_infected_by_other_agents_at_node(self, agent_id: int, node: int):
+        agent_type = "Staff member" if agent_id < self.n_staff else "Customer"
         num_infected_here = len(self.infected_agents_at_nodes[node])
 
         # Track number of infected agents
         if num_infected_here > 0:
             self.log(
-                f'Agent {agent_id} is in at zone {node} with {num_infected_here} infected people.' +
+                f'{agent_type} {agent_id} is in at zone {node} with {num_infected_here} infected people.' +
                 f' ({self.infected_agents_at_nodes[node]})')
             self.number_encounters_with_infected[agent_id] += num_infected_here
             self.number_encounters_per_node[node] += num_infected_here
@@ -175,12 +181,12 @@ class Store(object):
             self._infect_other_agents_at_node(agent_id, node)
         else:
             self._get_infected_by_other_agents_at_node(agent_id, node)
-        num_cust_at_node = len(self.agents_at_nodes[node])
-        if num_cust_at_node >= self.crowded_thres and self.node_is_crowded_since[node] is None:
-            self.log(f'Node {node} has become crowded with {num_cust_at_node} customers here.')
+        num_agents_at_node = len(self.agents_at_nodes[node])
+        if num_agents_at_node >= self.crowded_thres and self.node_is_crowded_since[node] is None:
+            self.log(f'Node {node} has become crowded with {num_agents_at_node} agents here.')
             self.node_is_crowded_since[node] = self.env.now
 
-    def _customer_wait(self, customer_id: int, node: int, infected: bool):
+    def _agent_wait(self, customer_id: int, node: int, infected: bool):
         if infected:
             self._infect_other_agents_at_node(customer_id, node)
         else:
@@ -279,7 +285,7 @@ def customer(env: simpy.Environment, customer_id: int, infected: bool, store: St
                 has_moved = False
                 while not has_moved:  # If it hasn't moved, wait a bit
                     yield env.timeout(random.expovariate(1 / traversal_time))
-                    has_moved = store.move_customer(customer_id, infected, start, end)
+                    has_moved = store._move_agent(customer_id, infected, start, end)
             yield env.timeout(random.expovariate(1 / traversal_time))  # wait before leaving the store
             store.remove_customer(customer_id, path[-1], infected)
 
@@ -299,7 +305,7 @@ def staff_member(env: simpy.Environment, staff_id: int, infected: bool, store: S
         has_moved = False
         while not has_moved:  # If it hasn't moved, wait a bit
             yield env.timeout(random.expovariate(1 / traversal_time))
-            has_moved = store.move_customer(staff_id, infected, start, end)
+            has_moved = store._move_agent(staff_id, infected, start, end)
     yield env.timeout(random.expovariate(1 / traversal_time))  # wait before leaving the store
     store.remove_customer(staff_id, path[-1], infected)
 
@@ -351,8 +357,8 @@ def two_customers(env: simpy.Environment, customer_id: int, infected: bool, stor
                 has_moved1 = False
                 while not has_moved and not has_moved1:  # If they haven't moved, wait a bit
                     yield env.timeout(random.expovariate(1 / traversal_time))
-                    has_moved = store.move_customer(customer_id, infected, start, end)
-                    has_moved1 = store.move_customer(customer_id + 1, infected, start, end)
+                    has_moved = store._move_agent(customer_id, infected, start, end)
+                    has_moved1 = store._move_agent(customer_id + 1, infected, start, end)
             yield env.timeout(random.expovariate(1 / traversal_time))  # wait before leaving the store
             store.remove_customer(customer_id, path[-1], infected)
             store.remove_customer(customer_id + 1, path[-1], infected)
@@ -374,7 +380,7 @@ def _agent_arrivals(env: simpy.Environment, store: Store, path_generator, config
     infection_proportion = config['infection_proportion']
     traversal_time = config['traversal_time']
     if 'customers_together' not in config:
-        config['customers_together'] = 0
+        config['customers_together'] = 1e-12  # TODO: Eemeli: Consider fixing this in other way.
     customer_id = 0
     store.open_store()
     yield env.timeout(random.expovariate(arrival_rate))

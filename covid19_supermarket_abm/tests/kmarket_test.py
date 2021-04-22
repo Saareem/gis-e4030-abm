@@ -26,11 +26,11 @@ print(node_visibility)
 # Create a path generator which feeds our model with customer paths
 weights = create_weights(random_weights = False)
 synthetic = True
-type = "empirical"
+path_gen_type = "empirical"
 if synthetic is True:
-    type = "synthetic"
+    path_gen_type = "synthetic"
 item_nodes = [i for i in range(1, 106) if not i in [1, 2, 3, 23, 51, 52, 53, 54, 55]]
-path_generator_function, path_generator_args = get_path_generator(path_generation = type,
+path_generator_function, path_generator_args = get_path_generator(path_generation = path_gen_type,
                                                                   zone_paths = zone_paths,
                                                                   G=G,
                                                                   synthetic_path_generator_args = [
