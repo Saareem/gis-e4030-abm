@@ -17,6 +17,7 @@ def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_ge
     if 'day' not in config:
         config['day'] = 0
     popular_hours = load_popular_hours().iloc[:, config['day']]
+    # TODO: Eemeli: Test has broken. Given num-of-hours from config should most likely be used.
     num_hours_open = popular_hours.count()
     logging_enabled = config.get('logging_enabled', False)
     raise_test_error = config.get('raise_test_error', False)  # for debugging purposes

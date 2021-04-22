@@ -64,7 +64,7 @@ print(list(results_dict.keys()))
 
 df_stats, df_num_encounter_per_node_stats, df_encounter_time_per_node_stats = simulate_several_days(config, G, path_generator_function,
                                                                              path_generator_args, num_iterations=50,
-                                                                             use_parallel=True)
+                                                                             use_parallel=False)
 print(df_stats)
 print(df_num_encounter_per_node_stats)
 print(df_encounter_time_per_node_stats)
