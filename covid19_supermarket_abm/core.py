@@ -147,14 +147,14 @@ class Store(object):
             self.infected_customers.append(agent_id)
         self._customer_arrival(agent_id, start_node, infected)
 
-    def infect_other_customers_at_node(self, customer_id: int, node: int):
-        other_suspectible_customers = [other_customer for other_customer in self.customers_at_nodes[node] if
-                                       other_customer not in self.infected_customers_at_nodes[node]]
-        if len(other_suspectible_customers) > 0:
+    def _infect_other_agents_at_node(self, agent_id: int, node: int):
+        other_susceptible_agents = [other_agent for other_agent in self.customers_at_nodes[node] if
+                                    other_agent not in self.infected_customers_at_nodes[node]]
+        if len(other_susceptible_agents) > 0:
             self.log(
-                f'Infected customer {customer_id} arrived in {node} and' +
-                f' met {len(other_suspectible_customers)} customers')
-        for other_customer in other_suspectible_customers:
+                f'Infected agent {agent_id} arrived in {node} and' +
+                f' met {len(other_susceptible_agents)} agents')
+        for other_customer in other_susceptible_agents:
             self.number_encounters_with_infected[other_customer] += 1
             self.number_encounters_per_node[node] += 1
 
@@ -175,7 +175,7 @@ class Store(object):
         self.node_arrival_time_stamp[customer_id] = self.env.now
         if infected:
             self.infected_customers_at_nodes[node].append(customer_id)
-            self.infect_other_customers_at_node(customer_id, node)
+            self._infect_other_agents_at_node(customer_id, node)
         else:
             self.get_infected_by_other_customers_at_node(customer_id, node)
         num_cust_at_node = len(self.customers_at_nodes[node])
@@ -185,7 +185,7 @@ class Store(object):
 
     def _customer_wait(self, customer_id: int, node: int, infected: bool):
         if infected:
-            self.infect_other_customers_at_node(customer_id, node)
+            self._infect_other_agents_at_node(customer_id, node)
         else:
             self.get_infected_by_other_customers_at_node(customer_id, node)
 

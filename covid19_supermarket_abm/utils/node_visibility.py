@@ -3,8 +3,11 @@ import pandas as pd
 from pathlib import Path
 import os
 
+
 def node_visibility(G: nx.Graph, data_dir = None, nodes = None):
-    ''' Creates a dictionary where keys are the nodes of the graph G and values are all nodes visible from the key node'''
+    """
+    Creates a dictionary where keys are the nodes of the graph G and values are all nodes visible from the key node
+    """
 
     visibility = {}
 
