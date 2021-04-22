@@ -25,7 +25,6 @@ class Store(object):
         """
         self.n_staff = n_staff
         self.G = G.copy()
-        self.customers_at_nodes = {node: [] for node in self.G}
         self.agents_at_nodes = {node: [] for node in self.G}
         self.infected_agents_at_nodes = {node: [] for node in self.G}
         self.agents = []
@@ -68,7 +67,7 @@ class Store(object):
         self.stats = {}
 
     def open_store(self):
-        assert len(self.agents) == 0, "Customers are already in the store before the store is open"
+        assert self.get_customer_count() == 0, "Customers are already in the store before the store is open"
         self.is_open = True
 
     def close_store(self):
@@ -82,7 +81,7 @@ class Store(object):
         self.node_capacity = node_capacity
 
     def number_customers_in_store(self):
-        return sum([len(cus) for cus in list(self.customers_at_nodes.values())])
+        return sum([len(cus) for cus in list(self.agents_at_nodes.values())]) - self.n_staff
 
     def get_customer_count(self) -> int:
         return len(self.agents[self.n_staff:])
@@ -93,17 +92,17 @@ class Store(object):
                 self._customer_wait(customer_id, start, infected)
                 self.log(f'Customer {customer_id} stays at present location to buy something.')
                 has_moved = True
-            elif self.with_node_capacity and len(self.customers_at_nodes[end]) >= self.node_capacity \
-                    and start not in [self.agents_next_zone[cust] for cust in self.customers_at_nodes[end]]:
+            elif self.with_node_capacity and len(self.agents_at_nodes[end]) >= self.node_capacity \
+                    and start not in [self.agents_next_zone[cust] for cust in self.agents_at_nodes[end]]:
                 # Wait if next node is occupied and doesn't work.
                 self.log(f'Customer {customer_id} is waiting at {start}, ' +
-                         f'since the next node {end} is full. [{self.customers_at_nodes[end]}]')
+                         f'since the next node {end} is full. [{self.agents_at_nodes[end]}]')
                 self._customer_wait(customer_id, start, infected)
                 has_moved = False
             else:
                 self.log(f'Customer {customer_id} is moving from {start} to {end}.')
                 self._customer_departure(customer_id, start, infected)
-                self._customer_arrival(customer_id, end, infected)
+                self._agent_arrival(customer_id, end, infected)
                 has_moved = True
         else:
             raise ValueError(f'{start} -> {end} is not a valid transition in the graph!')
@@ -124,7 +123,7 @@ class Store(object):
             self.time_with_infected_per_agent[customer_id] = 0
         else:
             self.infected_agents.append(customer_id)
-        self._customer_arrival(customer_id, start_node, infected)
+        self._agent_arrival(customer_id, start_node, infected)
 
     def add_agent(self, agent_id: int, start_node: int, infected: bool, wait: Optional[float] = 0):
         self.arrival_times[agent_id] = self.env.now
@@ -143,10 +142,10 @@ class Store(object):
             self.time_with_infected_per_agent[agent_id] = 0
         else:
             self.infected_agents.append(agent_id)
-        self._customer_arrival(agent_id, start_node, infected)
+        self._agent_arrival(agent_id, start_node, infected)
 
     def _infect_other_agents_at_node(self, agent_id: int, node: int):
-        other_susceptible_agents = [other_agent for other_agent in self.customers_at_nodes[node] if
+        other_susceptible_agents = [other_agent for other_agent in self.agents_at_nodes[node] if
                                     other_agent not in self.infected_agents_at_nodes[node]]
         if len(other_susceptible_agents) > 0:
             self.log(
@@ -167,16 +166,16 @@ class Store(object):
             self.number_encounters_with_infected[agent_id] += num_infected_here
             self.number_encounters_per_node[node] += num_infected_here
 
-    def _customer_arrival(self, customer_id: int, node: int, infected: bool):
+    def _agent_arrival(self, agent_id: int, node: int, infected: bool):
         """Process a customer arriving at a node."""
-        self.customers_at_nodes[node].append(customer_id)
-        self.node_arrival_time_stamp[customer_id] = self.env.now
+        self.agents_at_nodes[node].append(agent_id)
+        self.node_arrival_time_stamp[agent_id] = self.env.now
         if infected:
-            self.infected_agents_at_nodes[node].append(customer_id)
-            self._infect_other_agents_at_node(customer_id, node)
+            self.infected_agents_at_nodes[node].append(agent_id)
+            self._infect_other_agents_at_node(agent_id, node)
         else:
-            self._get_infected_by_other_agents_at_node(customer_id, node)
-        num_cust_at_node = len(self.customers_at_nodes[node])
+            self._get_infected_by_other_agents_at_node(agent_id, node)
+        num_cust_at_node = len(self.agents_at_nodes[node])
         if num_cust_at_node >= self.crowded_thres and self.node_is_crowded_since[node] is None:
             self.log(f'Node {node} has become crowded with {num_cust_at_node} customers here.')
             self.node_is_crowded_since[node] = self.env.now
@@ -189,7 +188,7 @@ class Store(object):
 
     def _customer_departure(self, customer_id: int, node: int, infected: bool):
         """Process a customer departing from a node."""
-        self.customers_at_nodes[node].remove(customer_id)
+        self.agents_at_nodes[node].remove(customer_id)
         if infected:
             self.infected_agents_at_nodes[node].remove(customer_id)
             s_customers = self.get_susceptible_customers_at_node(node)
@@ -206,7 +205,7 @@ class Store(object):
                 self.time_with_infected_per_agent[customer_id] += dt_with_infected
                 self.time_with_infected_per_node[node] += dt_with_infected
 
-        num_cust_at_node = len(self.customers_at_nodes[node])
+        num_cust_at_node = len(self.agents_at_nodes[node])
         if self.node_is_crowded_since[node] is not None and num_cust_at_node < self.crowded_thres:
             # Node is no longer crowded
             total_time_crowded_at_node = self.env.now - self.node_is_crowded_since[node]
@@ -217,7 +216,7 @@ class Store(object):
             self.node_is_crowded_since[node] = None
 
     def get_susceptible_customers_at_node(self, node):
-        return [c for c in self.customers_at_nodes[node] if c not in self.infected_agents_at_nodes[node]]
+        return [c for c in self.agents_at_nodes[node] if c not in self.infected_agents_at_nodes[node]]
 
     def remove_customer(self, customer_id: int, last_position: int, infected: bool):
         """Remove customer at exit."""
@@ -416,8 +415,9 @@ def _sanity_checks(store: Store,
         customers_at_nodes = [len(val) for val in store.infected_agents_at_nodes.values()]
         assert max(customers_at_nodes) == 0, \
             f"{sum(customers_at_nodes)} customers have not left the store. {store.infected_agents_at_nodes}"
-        assert max([len(val) for val in store.customers_at_nodes.values()]) == 0, \
-            f"{sum(customers_at_nodes)} customers have not left the store. {store.customers_at_nodes}"
+        # TODO: Eemeli: Will most likely fail with general agent. Fix test if it's used.
+        assert max([len(val) for val in store.agents_at_nodes.values()]) == 0, \
+            f"{sum(customers_at_nodes)} customers have not left the store. {store.agents_at_nodes}"
         assert set(store.waiting_times.keys()) == set(store.agents), \
             'Some customers are not recorded in waiting times (or vice versa)'
         assert all([val >= 0 for val in store.waiting_times.values()]), \
