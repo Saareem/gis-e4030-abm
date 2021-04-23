@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>WEB APP</title>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h1 style="text-align: center">Set parameters and press RUN</h1>
+
+    <div class="form">
+        <form action="/" method="POST">
+            <p>First parameter: </p>
+            <input type="text" name="content" id="content">
+            <input type="submit" value="RUN">
+        </form>
+    </div>
+</div>
+{% endblock %}
