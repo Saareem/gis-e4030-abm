@@ -24,6 +24,17 @@ def sample_num_products_in_basket_batch(mu, sigma, num_baskets):
     return num_items[:num_baskets]
 
 
+def weights_to_p(weights, item_nodes):
+    p = []
+    for node in item_nodes:
+        if node in weights:
+            p.append(weights[node])
+        else:
+            p.append(0.0)
+    diff = 1.0 - sum(p)
+    p[0] += diff
+    return p
+
 def create_random_item_paths(num_items, entrance_nodes, till_nodes, exit_nodes, item_nodes, weights = None):
     """
     Create random item path based on the number of items in each basket and the shelves were items are located.
@@ -35,7 +46,12 @@ def create_random_item_paths(num_items, entrance_nodes, till_nodes, exit_nodes, 
     random_entrance_nodes = np.random.choice(entrance_nodes, size=num_baskets)
     random_till_nodes = np.random.choice(till_nodes, size=num_baskets)
     random_exit_nodes = np.random.choice(exit_nodes, size=num_baskets)
-    concatenated_baskets = np.random.choice(item_nodes, size=np.sum(num_items))
+    concatenated_baskets = []
+    if weights is None:
+        concatenated_baskets = np.random.choice(item_nodes, size=np.sum(num_items))
+    else:
+        p = weights_to_p(weights, item_nodes)
+        concatenated_baskets = np.random.choice(item_nodes, size=np.sum(num_items), p = p)
     break_points = np.cumsum(num_items)
     item_paths = []
     start = 0

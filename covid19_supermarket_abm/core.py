@@ -14,7 +14,8 @@ class Store(object):
 
     def __init__(self, env: simpy.Environment, G: nx.Graph, max_customers_in_store: Optional[int] = None,
                  logging_enabled: bool = False,
-                 logger: Optional[logging._loggerClass] = None, staff_conf: Optional[tuple] = (0, [])):
+                 logger: Optional[logging._loggerClass] = None, staff_conf: Optional[tuple] = (0, []),
+                 path_update_freq: Optional[int] = 5):
         """
         :param env: Simpy environment on which the simulation runs
         :param G: Store graph
@@ -24,6 +25,9 @@ class Store(object):
         """
         self.n_staff = 0
         self.n_staff = max(0, staff_conf[0])  # So that nobody enters negative number
+        self.path_update_freq = path_update_freq    # How often the agents recalculate their paths when realtime
+                                                    # path generation is used
+        self.baskets = {}   # The nodes that the customers want to visit. Used for realtime path generation
         self.G = G.copy()
         self.agents_at_nodes = {node: [] for node in self.G}
         self.infected_agents_at_nodes = {node: [] for node in self.G}
@@ -96,6 +100,8 @@ class Store(object):
         if self.check_valid_move(start, end):
             if start == end:  # start == end
                 self._agent_wait(agent_id, start, infected)
+                if start in self.baskets[agent_id]:
+                    self.baskets[agent_id].remove(start)
                 self.log(f'{agent_type} {agent_id} {msg_dict[agent_type]}')
                 has_moved = True
             elif self.with_node_capacity and len(self.agents_at_nodes[end]) >= self.node_capacity \
@@ -129,7 +135,7 @@ class Store(object):
                 validity = validity and self.G.has_edge(end, start)
         return validity
 
-    def add_agent(self, agent_id: int, start_node: int, infected: bool, wait: float = 0):
+    def add_agent(self, agent_id: int, start_node: int, infected: bool, wait: float = 0, basket: Optional[List[int]] = []):
         """
         Adds an agent into the store. The agent can currently be either staff member or a customer. A staff member will
         have id < n_staff if n_staff != 0 and customers will have id >= n_staff
@@ -148,6 +154,7 @@ class Store(object):
                      f'({infected * "infected"}{(not infected) * "susceptible"})')
             self.waiting_times[agent_id] = wait
         self.agents.append(agent_id)
+        self.baskets[agent_id] = basket
         if not infected:
             # Increase counter
             self.number_encounters_with_infected[agent_id] = 0
@@ -271,8 +278,53 @@ class Store(object):
         if self.logger is not None:
             self.logger.debug(f'[Time: {self.now()}] ' + string)
 
+    def update_path(self, start: int, agent_id: int, avoidance_factor: Optional[float] = 1,
+                    avoidance_k: Optional[float] = 1.5):
+        """
+        Updates path for agens when realtime path generation is used.
 
-def customer(env: simpy.Environment, customer_id: int, infected: bool, store: Store, path: List[int],
+        :param agent_id: ID of the agent
+        :param avoidance_factor: The weight of other customers in a path is calculated by
+        avoidance_factor*num_customers^avoidance_k
+        :param avoidance_k See avoidance_factor
+        """
+
+        def _weight_function(u, v, e):
+            """
+            Function used to calculate edge weights in the graph
+            """
+            return 1 + avoidance_factor*len(self.agents_at_nodes[v])**avoidance_k
+
+        shortest_path = [start]
+        shortest_len = float("inf")
+        not_visited = self.baskets[agent_id]
+
+        # If there are item nodes left
+        if len(not_visited) > 2:
+            for item in not_visited[:-2]:
+                length, path = nx.algorithms.shortest_paths.weighted.single_source_dijkstra(self.G, start, item,
+                                                                                            weight=_weight_function)
+                if length < shortest_len:
+                    shortest_len = length
+                    N = min(self.path_update_freq, len(path))
+                    shortest_path = path[:N]
+        # If there is only checkout and/or exit left
+        elif len(not_visited) > 0:
+            length, path = nx.algorithms.shortest_paths.weighted.single_source_dijkstra(self.G, start, not_visited[0],
+                                                                                        weight=_weight_function)
+            if length < shortest_len:
+                shortest_len = length
+                N = min(self.path_update_freq, len(path))
+                shortest_path = path[:N]
+
+        # Duplicate nodes in basket so the agent stays in them to buy something
+        if shortest_path[-1] in not_visited:
+            shortest_path.append(shortest_path[-1])
+
+        return shortest_path
+
+
+def customer(env: simpy.Environment, customer_id: int, infected: bool, store: Store, path_orig: List[int],
              traversal_time: float, thres: int = 50):
     """
     Simpy process simulating a single customer
@@ -281,11 +333,22 @@ def customer(env: simpy.Environment, customer_id: int, infected: bool, store: St
     :param customer_id: ID of customer
     :param infected: True if infected
     :param store: Store object
-    :param path: Assigned customer shopping path
+    :param path_orig: Assigned customer shopping path (for non-realtime path generation) or item basket (realtime)
     :param traversal_time: Mean time before moving to the next node in path (also called waiting time)
     :param thres: Threshold length of queue outside. If queue exceeds threshold, customer does not enter
     the queue and leaves.
     """
+
+    realtime = False
+    if path_orig[0] == -1:
+        realtime = True
+
+    path = []
+    if realtime:
+        # Agent starts at entrance node
+        path = [path_orig[1], path_orig[1]]
+    else:
+        path = path_orig
 
     arrive = env.now
 
@@ -309,13 +372,18 @@ def customer(env: simpy.Environment, customer_id: int, infected: bool, store: St
             store.log(
                 f'Customer {customer_id} enters the shop after waiting {wait :.2f} min with shopping path {path}.')
             start_node = path[0]
-            store.add_agent(customer_id, start_node, infected, wait)
-            for start, end in zip(path[:-1], path[1:]):
-                store.agents_next_zone[customer_id] = end
-                has_moved = False
-                while not has_moved:  # If it hasn't moved, wait a bit
-                    yield env.timeout(random.expovariate(1 / traversal_time))
-                    has_moved = store.move_agent(customer_id, infected, start, end)
+            basket = []
+            if realtime:
+                basket = path_orig[1:]
+            store.add_agent(customer_id, start_node, infected, wait, basket=basket)
+            while len(path) > 1:
+                for start, end in zip(path[:-1], path[1:]):
+                    store.agents_next_zone[customer_id] = end
+                    has_moved = False
+                    while not has_moved:  # If it hasn't moved, wait a bit
+                        yield env.timeout(random.expovariate(1 / traversal_time))
+                        has_moved = store.move_agent(customer_id, infected, start, end)
+                path = store.update_path(path[-1], customer_id)
             yield env.timeout(random.expovariate(1 / traversal_time))  # wait before leaving the store
             store.remove_agent(customer_id, path[-1], infected)
 
@@ -341,8 +409,8 @@ def staff_member(env: simpy.Environment, staff_id: int, infected: bool, store: S
     store.remove_agent(staff_id, path[-1], infected)
 
 
-def two_customers(env: simpy.Environment, customer_id: int, infected: bool, store: Store, path: List[int],
-                  traversal_time: float, thres: int = 50):
+def two_customers(env: simpy.Environment, customer_id: int, infected: bool, store: Store, path_orig: List[int],
+                  traversal_time: float, thres: int = 50, basket: Optional[List[int]] = [-1]):
     """
     Simpy process simulating group of TWO customers
 
@@ -355,6 +423,14 @@ def two_customers(env: simpy.Environment, customer_id: int, infected: bool, stor
     :param thres: Threshold length of queue outside. If queue exceeds threshold, customer does not enter
     the queue and leaves.
     """
+
+    visited = []
+    path = []
+    if basket == [-1]:
+        path = path_orig
+    else:
+        # Agent starts at entrance node
+        path = [basket[0], basket[0]]
 
     arrive = env.now
 
@@ -420,7 +496,7 @@ def _agent_arrivals(env: simpy.Environment, store: Store, path_generator, config
         path = path_generator.__next__()
 
         # Some customers arrive together
-        if customer_id % int(1 / config['customers_together']) == 0:
+        if config['customers_together'] != 0 and customer_id % int(1 / config['customers_together']) == 0:
             env.process(two_customers(env, customer_id, infected, store, path, traversal_time))
             customer_id += 2
         else:

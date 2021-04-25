@@ -39,7 +39,7 @@ def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_ge
     # Set up environment and run
     env = simpy.Environment()
     store = Store(env, G, max_customers_in_store=max_customers_in_store, logging_enabled=logging_enabled,
-                  n_staff=config['n_staff'])
+                  staff_conf=(config['n_staff'], []))
     if with_node_capacity:
         node_capacity = config.get('node_capacity', 2)
         store.enable_node_capacity(node_capacity)
