@@ -14,20 +14,19 @@ class Store(object):
 
     def __init__(self, env: simpy.Environment, G: nx.Graph, max_customers_in_store: Optional[int] = None,
                  logging_enabled: bool = False,
-                 logger: Optional[logging._loggerClass] = None, staff_conf: Optional[tuple] = (0, []),
+                 logger: Optional[logging._loggerClass] = None, staff_start_nodes: Optional[tuple[int]] = (),
                  path_update_freq: Optional[int] = 5):
         """
         :param env: Simpy environment on which the simulation runs
         :param G: Store graph
         :param logging_enabled: Toggle to True to log all simulation outputs
         :param max_customers_in_store: Maximum number of customers in the store
-        :param staff_conf: Number of staff members in the store. Defaults to 0.
+        :param staff_start_nodes: Contains the start nodes for the staff members. An empty list means, there's no staff.
         """
-        self.n_staff = 0
-        self.n_staff = max(0, staff_conf[0])  # So that nobody enters negative number
-        self.path_update_freq = path_update_freq    # How often the agents recalculate their paths when realtime
-                                                    # path generation is used
-        self.baskets = {}   # The nodes that the customers want to visit. Used for realtime path generation
+        self.n_staff = len(staff_start_nodes)
+        self.path_update_freq = path_update_freq  # How often the agents recalculate their paths when realtime
+        # path generation is used
+        self.baskets = {}  # The nodes that the customers want to visit. Used for realtime path generation
         self.G = G.copy()
         self.agents_at_nodes = {node: [] for node in self.G}
         self.infected_agents_at_nodes = {node: [] for node in self.G}
@@ -53,7 +52,8 @@ class Store(object):
         self.logs = []
         self.logging_enabled = logging_enabled
         self.logger = logger
-        self.staff_paths = {id: [] for id in range(0, self.n_staff)}
+        self.staff_paths = \
+            {staff_id: [node] for staff_id, node in zip(range(0, self.n_staff), staff_start_nodes)}
 
         # Parameters
         self.node_capacity = np.inf
@@ -142,7 +142,7 @@ class Store(object):
         @param agent_id: ID of the agent that is added
         @param start_node: the node where the agent starts
         @param infected: Whether the agent is infected or not
-        @param wait: Optional
+        @param wait: Optional wait time before entering the store. Staff members enter the store right a way.
         """
         self.arrival_times[agent_id] = self.env.now
         if agent_id < self.n_staff:
@@ -388,25 +388,40 @@ def customer(env: simpy.Environment, customer_id: int, infected: bool, store: St
             store.remove_agent(customer_id, path[-1], infected)
 
 
-def staff_member(env: simpy.Environment, staff_id: int, infected: bool, store: Store, traversal_time: float,
-                 path: List[int]):
+def staff_member(env: simpy.Environment, staff_id: int, infected: bool, store: Store, traversal_time: float):
     """
     Simpy process simulating a member of staff
 
     :param env: Simpy environment on which the simulation runs
-    :param staff_id: ID of agent
+    :param staff_id: ID of staff member
     :param infected: True if infected
     :param store: Store object
     :param traversal_time: Mean time before moving to the next node in path (also called waiting time)
     """
-    for start, end in zip(path[:-1], path[1:]):
+    store.log(
+        f'Staff member {staff_id} enters the shop.')
+    path = store.staff_paths[staff_id]
+    start = path[-1]
+    store.add_agent(staff_id, start, infected)
+    yield env.timeout(1)
+    while store.is_open or store.number_customers_in_store() > 0:
+        nbrs = store.G.neighbors(start)
+        v_nbrs = []  # Neighbors where the staff member can move
+        for n in nbrs:
+            # Due to peculiarity of Python, this will append only valid nodes, as True and 1 => 1
+            v_nbrs.append(store.check_valid_move(start, n, True) and n)
+        # Select end node from both-ways-passable nodes. I.e. nodes where the staff member can go and return.
+        end = random.choice(v_nbrs)
+        # Set the next node which is used by move_agent function to actually move the agent (staff member)
         store.agents_next_zone[staff_id] = end
         has_moved = False
         while not has_moved:  # If it hasn't moved, wait a bit
             yield env.timeout(random.expovariate(1 / traversal_time))
             has_moved = store.move_agent(staff_id, infected, start, end)
+            path.append(end)  # Store the path for further use and logging purposes
     yield env.timeout(random.expovariate(1 / traversal_time))  # wait before leaving the store
     store.remove_agent(staff_id, path[-1], infected)
+    print(path)
 
 
 def two_customers(env: simpy.Environment, customer_id: int, infected: bool, store: Store, path_orig: List[int],
@@ -488,20 +503,25 @@ def _agent_arrivals(env: simpy.Environment, store: Store, path_generator, config
     traversal_time = config['traversal_time']
     if 'customers_together' not in config:
         config['customers_together'] = 1e-12  # TODO: Eemeli: Consider fixing this in other way.
-    customer_id = 0
+    agent_id = 0
+
     store.open_store()
+    for i in range(agent_id, n_staff):
+        infected = np.random.rand() < infection_proportion
+        env.process(staff_member(env, i, infected, store, traversal_time))
+        i += 1
+        agent_id += 1
     yield env.timeout(random.expovariate(arrival_rate))
     while env.now < num_hours_open * 60:
-        infected = np.random.rand() < infection_proportion
         path = path_generator.__next__()
-
+        infected = np.random.rand() < infection_proportion
         # Some customers arrive together
-        if config['customers_together'] != 0 and customer_id % int(1 / config['customers_together']) == 0:
-            env.process(two_customers(env, customer_id, infected, store, path, traversal_time))
-            customer_id += 2
+        if config['customers_together'] != 0 and agent_id % int(1 / config['customers_together']) == 0:
+            env.process(two_customers(env, agent_id, infected, store, path, traversal_time))
+            agent_id += 2
         else:
-            env.process(customer(env, customer_id, infected, store, path, traversal_time))
-            customer_id += 1
+            env.process(customer(env, agent_id, infected, store, path, traversal_time))
+            agent_id += 1
 
         # Change arrival rate every hour
         if env.now / 60 >= hour_nro + 1:
