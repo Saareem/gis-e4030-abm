@@ -1,10 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Result page</title>
-</head>
-<body>
-    <img src="https://i.redd.it/twz2m794ohd41.jpg" alt="Cat meme">
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Result page</title>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h1 style="text-align: center">Results of simulation</h1>
+
+    <!--Create table based on dictionary-->
+    <table align="center">
+        {% for key, value in result_values.items() %}
+           <tr>
+                <th> {{ key }} </th>
+                <td> {{ value }} </td>
+           </tr>
+        {% endfor %}
+    </table>
+
+    <!--Display all image names (for testing) and images from given directory-->
+    {% for image in result_images %}
+        <h1 style="text-align: center">{{ image }}</h1>
+        <img src="{{ image }}"/>
+    {% endfor %}
+
+
+</div>
+{% endblock %}
