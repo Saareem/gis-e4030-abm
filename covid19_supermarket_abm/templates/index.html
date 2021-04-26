@@ -6,12 +6,28 @@
 
 {% block body %}
 <div class="content">
-    <h1 style="text-align: center">Set parameters and press RUN</h1>
+    <h1 style="text-align: center">Set ALL parameters and press RUN</h1>
 
     <div class="form">
         <form action="/" method="POST">
-            <p>First parameter: </p>
-            <input type="text" name="content" id="content">
+            <label for="param1">Arrival rate:</label>
+            <input type="text" name="param1" id="param1"><br>
+
+            <label for="param2">Traversal time:</label>
+            <input type="text" name="param2" id="param2"><br>
+
+            <label for="param3">Infection proportion:</label>
+            <input type="text" name="param3" id="param3"><br>
+
+            <input type="checkbox" id="param4" name="param4" value="True">
+            <label for="param4">Logging enabled</label><br>
+
+            <label for="param5">Week day (0= monday, 6=sunday):</label>
+            <input type="text" name="param5" id="param5"><br>
+
+            <label for="param6">Customers together:</label>
+            <input type="text" name="param6" id="param6"><br>
+
             <input type="submit" value="RUN">
         </form>
     </div>

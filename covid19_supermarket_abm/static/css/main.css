@@ -1,2 +1,11 @@
+body {
+  background-color: powderblue;
+  font-family: "Helvetica Neue Light", Helvetica, sans-serif;
+  font-weight: 300;
+  text-align: center;
+}
 
 
+h1 {
+  color: blue;
+}
