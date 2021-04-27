@@ -26,6 +26,7 @@ def index():
             result_values = {'key1': 'result1',
                              'key2': 'result2',
                              'key3': 'result3'}
+
             result_images = ['static/images/cat-meme.jpg']
 
             # Display new page where you can see simulation results
