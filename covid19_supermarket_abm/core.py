@@ -139,6 +139,7 @@ class Store(object):
         """
         Adds an agent into the store. The agent can currently be either staff member or a customer. A staff member will
         have id < n_staff if n_staff != 0 and customers will have id >= n_staff
+        @param basket:
         @param agent_id: ID of the agent that is added
         @param start_node: the node where the agent starts
         @param infected: Whether the agent is infected or not
