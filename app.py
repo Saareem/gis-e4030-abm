@@ -26,7 +26,7 @@ def index():
             result_values = {'key1': 'result1',
                              'key2': 'result2',
                              'key3': 'result3'}
-            result_images = ['covid19_supermarket_abm/static/images/cat-meme.jpg']  #TODO: Fix the path
+            result_images = ['static/images/cat-meme.jpg']
 
             # Display new page where you can see simulation results
             return render_template('results.html', result_values=result_values, result_images=result_images)
