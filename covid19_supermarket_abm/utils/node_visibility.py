@@ -22,7 +22,7 @@ def node_visibility(G: nx.Graph, data_dir = None, nodes = None):
         # Nodes that are visible from node idx1
         visible = set()
         for idx2, row2 in nodes.iterrows():
-            if abs(row1["x"] - row2["x"]) < 200 and abs(row1["y"] - row2["y"]) < 200:
+            if abs(row1["x"] - row2["x"]) < 400 and abs(row1["y"] - row2["y"]) < 400:
                 visible.add(idx2)
         visibility[idx1] = visible
     return visibility

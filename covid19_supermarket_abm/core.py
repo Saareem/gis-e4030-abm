@@ -15,20 +15,33 @@ class Store(object):
     def __init__(self, env: simpy.Environment, G: nx.Graph, max_customers_in_store: Optional[int] = None,
                  logging_enabled: bool = False,
                  logger: Optional[logging._loggerClass] = None, staff_conf: Optional[tuple] = (0, []),
-                 path_update_freq: Optional[int] = 5):
+                 path_update_freq: Optional[int] = 5, shortest_path_dict: Optional[dict] = None,
+                 avoidance_factor: Optional[float] = 1.0, avoidance_k: Optional[float] = 1.5,
+                 node_visibility: Optional[dict] = None):
         """
         :param env: Simpy environment on which the simulation runs
         :param G: Store graph
         :param logging_enabled: Toggle to True to log all simulation outputs
         :param max_customers_in_store: Maximum number of customers in the store
         :param staff_conf: Number of staff members in the store. Defaults to 0.
+        :param path_update_freq: How often agents update their paths with realtime path generation
+        :param avoidance_factor: With realtime path generation the weight of other customers in a path is calculated by
+        avoidance_factor*num_customers^avoidance_k
+        :param avoidance_k: With realtime path generation the weight of other customers in a path is calculated by
+        avoidance_factor*num_customers^avoidance_k
+        :param node_visibility: Dictionary where keys are nodes and values are nodes visible from key node. Used for
+        realtime path generation.
         """
         self.n_staff = 0
         self.n_staff = max(0, staff_conf[0])  # So that nobody enters negative number
         self.path_update_freq = path_update_freq    # How often the agents recalculate their paths when realtime
                                                     # path generation is used
+        self.avoidance_factor = avoidance_factor
+        self.avoidance_k = avoidance_k
+        self.node_visibility = node_visibility
         self.baskets = {}   # The nodes that the customers want to visit. Used for realtime path generation
         self.G = G.copy()
+        self.shortest_path_dict = shortest_path_dict
         self.agents_at_nodes = {node: [] for node in self.G}
         self.infected_agents_at_nodes = {node: [] for node in self.G}
         self.agents = []
@@ -278,44 +291,38 @@ class Store(object):
         if self.logger is not None:
             self.logger.debug(f'[Time: {self.now()}] ' + string)
 
-    def update_path(self, start: int, agent_id: int, avoidance_factor: Optional[float] = 1,
-                    avoidance_k: Optional[float] = 1.5):
+    def update_path(self, start: int, agent_id: int):
         """
-        Updates path for agens when realtime path generation is used.
+        Updates path for an agent when realtime path generation is used.
 
+        :param start: Current location of the agent
         :param agent_id: ID of the agent
-        :param avoidance_factor: The weight of other customers in a path is calculated by
-        avoidance_factor*num_customers^avoidance_k
-        :param avoidance_k See avoidance_factor
         """
 
         def _weight_function(u, v, e):
             """
             Function used to calculate edge weights in the graph
             """
-            return 1 + avoidance_factor*len(self.agents_at_nodes[v])**avoidance_k
+            agents_in_node = 0
+            if self.node_visibility is None or v in self.node_visibility[u]:
+                agents_in_node = len(self.agents_at_nodes[v])
+            return 1 + self.avoidance_factor*agents_in_node**self.avoidance_k
+
+        def _heuristic_function(source, target):
+            # TODO At the moment shortest_path_dict needs to be in config, should be fixed
+            a = len(self.shortest_path_dict[source][target][0])
+            #b = self.avoidance_factor*len(self.agents_at_nodes[start])**self.avoidance_k
+            return a
 
         shortest_path = [start]
         shortest_len = float("inf")
         not_visited = self.baskets[agent_id]
 
-        # If there are item nodes left
-        if len(not_visited) > 2:
-            for item in not_visited[:-2]:
-                length, path = nx.algorithms.shortest_paths.weighted.single_source_dijkstra(self.G, start, item,
-                                                                                            weight=_weight_function)
-                if length < shortest_len:
-                    shortest_len = length
-                    N = min(self.path_update_freq, len(path))
-                    shortest_path = path[:N]
-        # If there is only checkout and/or exit left
-        elif len(not_visited) > 0:
-            length, path = nx.algorithms.shortest_paths.weighted.single_source_dijkstra(self.G, start, not_visited[0],
-                                                                                        weight=_weight_function)
-            if length < shortest_len:
-                shortest_len = length
-                N = min(self.path_update_freq, len(path))
-                shortest_path = path[:N]
+        if len(not_visited) > 0:
+            path = nx.algorithms.astar_path(self.G, start, not_visited[0], heuristic=_heuristic_function,
+                                                        weight=_weight_function)
+            N = min(self.path_update_freq, len(path))
+            shortest_path = path[:N]
 
         # Duplicate nodes in basket so the agent stays in them to buy something
         if shortest_path[-1] in not_visited:
@@ -410,7 +417,7 @@ def staff_member(env: simpy.Environment, staff_id: int, infected: bool, store: S
 
 
 def two_customers(env: simpy.Environment, customer_id: int, infected: bool, store: Store, path_orig: List[int],
-                  traversal_time: float, thres: int = 50, basket: Optional[List[int]] = [-1]):
+                  traversal_time: float, thres: int = 50):
     """
     Simpy process simulating group of TWO customers
 
@@ -424,13 +431,16 @@ def two_customers(env: simpy.Environment, customer_id: int, infected: bool, stor
     the queue and leaves.
     """
 
-    visited = []
+    realtime = False
+    if path_orig[0] == -1:
+        realtime = True
+
     path = []
-    if basket == [-1]:
-        path = path_orig
-    else:
+    if realtime:
         # Agent starts at entrance node
-        path = [basket[0], basket[0]]
+        path = [path_orig[1], path_orig[1]]
+    else:
+        path = path_orig
 
     arrive = env.now
 
@@ -455,17 +465,22 @@ def two_customers(env: simpy.Environment, customer_id: int, infected: bool, stor
             store.log(f'Customers {customer_id} and {customer_id + 1} enter the shop after waiting +'
                       f'{wait :.2f} min with shopping path {path}.')
             start_node = path[0]
-            store.add_agent(customer_id, start_node, infected, wait)
-            store.add_agent(customer_id + 1, start_node, infected, wait)
-            for start, end in zip(path[:-1], path[1:]):
-                store.agents_next_zone[customer_id] = end
-                store.agents_next_zone[customer_id + 1] = end
-                has_moved = False
-                has_moved1 = False
-                while not has_moved and not has_moved1:  # If they haven't moved, wait a bit
-                    yield env.timeout(random.expovariate(1 / traversal_time))
-                    has_moved = store.move_agent(customer_id, infected, start, end)
-                    has_moved1 = store.move_agent(customer_id + 1, infected, start, end)
+            basket = []
+            if realtime:
+                basket = path_orig[1:]
+            store.add_agent(customer_id, start_node, infected, wait, basket=basket)
+            store.add_agent(customer_id + 1, start_node, infected, wait, basket=basket)
+            while len(path) > 1:
+                for start, end in zip(path[:-1], path[1:]):
+                    store.agents_next_zone[customer_id] = end
+                    store.agents_next_zone[customer_id + 1] = end
+                    has_moved = False
+                    has_moved1 = False
+                    while not has_moved and not has_moved1:  # If they haven't moved, wait a bit
+                        yield env.timeout(random.expovariate(1 / traversal_time))
+                        has_moved = store.move_agent(customer_id, infected, start, end)
+                        has_moved1 = store.move_agent(customer_id + 1, infected, start, end)
+                path = store.update_path(path[-1], customer_id)
             yield env.timeout(random.expovariate(1 / traversal_time))  # wait before leaving the store
             store.remove_agent(customer_id, path[-1], infected)
             store.remove_agent(customer_id + 1, path[-1], infected)

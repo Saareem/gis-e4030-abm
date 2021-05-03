@@ -33,13 +33,18 @@ def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_ge
             raise ValueError('If you set the parameter "max_customers_in_store_per_sqm", '
                              'you need to specify the floor area via the "floorarea" parameter in the config.')
 
-    if 'n_staff' not in config:
-        config['n_staff'] = 0
+    n_staff = config.get('n_staff', 0)
+    shortest_path_dict = config.get('shortest_path_dict', None)
+    path_update_freq = config.get('path_update_freq', 5)
+    avoidance_factor = config.get('avoidance_factor', 1)
+    avoidance_k = config.get('avoidance_k', 1.5)
+    node_visibility = config.get('node_visibility', None)
 
     # Set up environment and run
     env = simpy.Environment()
     store = Store(env, G, max_customers_in_store=max_customers_in_store, logging_enabled=logging_enabled,
-                  staff_conf=(config['n_staff'], []))
+                  staff_conf=(n_staff, []), path_update_freq=path_update_freq, shortest_path_dict=shortest_path_dict,
+                  avoidance_factor=avoidance_factor, avoidance_k=avoidance_k, node_visibility=node_visibility)
     if with_node_capacity:
         node_capacity = config.get('node_capacity', 2)
         store.enable_node_capacity(node_capacity)
@@ -157,3 +162,4 @@ def simulate_several_days(config: dict,
     df_num_encounter_per_node_stats = pd.concat(df_num_encounters_per_node_list).reset_index(drop=True)
     df_encounter_time_per_node_stats = pd.concat(df_exposure_time_per_node_list).reset_index(drop=True)
     return df_stats, df_num_encounter_per_node_stats, df_encounter_time_per_node_stats
+
