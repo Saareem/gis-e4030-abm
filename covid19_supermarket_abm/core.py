@@ -15,9 +15,7 @@ class Store(object):
     def __init__(self, env: simpy.Environment, G: nx.Graph, max_customers_in_store: Optional[int] = None,
                  logging_enabled: bool = False,
                  logger: Optional[logging._loggerClass] = None, staff_conf: Optional[tuple] = (0, []),
-                 path_update_freq: Optional[int] = 5, shortest_path_dict: Optional[dict] = None,
-                 avoidance_factor: Optional[float] = 1.0, avoidance_k: Optional[float] = 1.5,
-                 node_visibility: Optional[dict] = None):
+                 realtime: Optional[bool] = False, realtime_parameters: Optional[dict] = {}):
         """
         :param env: Simpy environment on which the simulation runs
         :param G: Store graph
@@ -34,14 +32,16 @@ class Store(object):
         """
         self.n_staff = 0
         self.n_staff = max(0, staff_conf[0])  # So that nobody enters negative number
-        self.path_update_freq = path_update_freq    # How often the agents recalculate their paths when realtime
+        self.realtime = realtime
+        if self.realtime:
+            self.path_update_freq = realtime_parameters['path_update_freq']   # How often the agents recalculate their paths when realtime
                                                     # path generation is used
-        self.avoidance_factor = avoidance_factor
-        self.avoidance_k = avoidance_k
-        self.node_visibility = node_visibility
+            self.avoidance_factor = realtime_parameters['avoidance_factor']
+            self.avoidance_k = realtime_parameters['avoidance_k']
+            self.node_visibility = realtime_parameters['node_visibility']
+            self.shortest_path_dict = realtime_parameters['shortest_path_dict']
         self.baskets = {}   # The nodes that the customers want to visit. Used for realtime path generation
         self.G = G.copy()
-        self.shortest_path_dict = shortest_path_dict
         self.agents_at_nodes = {node: [] for node in self.G}
         self.infected_agents_at_nodes = {node: [] for node in self.G}
         self.agents = []
@@ -303,16 +303,12 @@ class Store(object):
             """
             Function used to calculate edge weights in the graph
             """
-            agents_in_node = 0
-            if self.node_visibility is None or v in self.node_visibility[u]:
-                agents_in_node = len(self.agents_at_nodes[v])
+            agents_in_node = self.node_visibility[(start, v)]*len(self.agents_at_nodes[v])
             return 1 + self.avoidance_factor*agents_in_node**self.avoidance_k
 
         def _heuristic_function(source, target):
             # TODO At the moment shortest_path_dict needs to be in config, should be fixed
-            a = len(self.shortest_path_dict[source][target][0])
-            #b = self.avoidance_factor*len(self.agents_at_nodes[start])**self.avoidance_k
-            return a
+            return len(self.shortest_path_dict[source][target][0])
 
         shortest_path = [start]
         shortest_len = float("inf")
@@ -346,12 +342,8 @@ def customer(env: simpy.Environment, customer_id: int, infected: bool, store: St
     the queue and leaves.
     """
 
-    realtime = False
-    if path_orig[0] == -1:
-        realtime = True
-
     path = []
-    if realtime:
+    if store.realtime:
         # Agent starts at entrance node
         path = [path_orig[1], path_orig[1]]
     else:
@@ -380,7 +372,7 @@ def customer(env: simpy.Environment, customer_id: int, infected: bool, store: St
                 f'Customer {customer_id} enters the shop after waiting {wait :.2f} min with shopping path {path}.')
             start_node = path[0]
             basket = []
-            if realtime:
+            if store.realtime:
                 basket = path_orig[1:]
             store.add_agent(customer_id, start_node, infected, wait, basket=basket)
             while len(path) > 1:
@@ -432,11 +424,8 @@ def two_customers(env: simpy.Environment, customer_id: int, infected: bool, stor
     """
 
     realtime = False
-    if path_orig[0] == -1:
-        realtime = True
-
     path = []
-    if realtime:
+    if store.realtime:
         # Agent starts at entrance node
         path = [path_orig[1], path_orig[1]]
     else:

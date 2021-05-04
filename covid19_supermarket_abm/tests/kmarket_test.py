@@ -19,6 +19,7 @@ config = {'arrival_rate': 2.55,
           'infection_proportion': 0.0011,
           "logging_enabled": True,
           'day': 6, # 0 = Monday, ..., 6 = Sunday
+          'realtime': True,
           'customers_together': 0.2,  # Proportion between [0,1]
           'path_update_freq': 5,
           'shortest_path_dict': shortest_path_dict,
