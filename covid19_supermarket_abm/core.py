@@ -421,8 +421,7 @@ def staff_member(env: simpy.Environment, staff_id: int, infected: bool, store: S
             has_moved = store.move_agent(staff_id, infected, start, end)
             path.append(end)  # Store the path for further use and logging purposes
     yield env.timeout(random.expovariate(1 / traversal_time))  # wait before leaving the store
-    store.remove_agent(staff_id, path[-1], infected)
-    print(path)
+    #store.remove_agent(staff_id, path[-1], infected)
 
 
 def two_customers(env: simpy.Environment, customer_id: int, infected: bool, store: Store, path_orig: List[int],

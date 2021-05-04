@@ -17,7 +17,6 @@ def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_ge
     if 'day' not in config:
         config['day'] = 0
     popular_hours = load_popular_hours().iloc[:, config['day']]
-    # TODO: Eemeli: Test has broken. Given num-of-hours from config should most likely be used.
     num_hours_open = popular_hours.count()
     logging_enabled = config.get('logging_enabled', False)
     raise_test_error = config.get('raise_test_error', False)  # for debugging purposes
@@ -33,13 +32,13 @@ def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_ge
             raise ValueError('If you set the parameter "max_customers_in_store_per_sqm", '
                              'you need to specify the floor area via the "floorarea" parameter in the config.')
 
-    if 'n_staff' not in config:
-        config['n_staff'] = 0
+    if 'staff_start_nodes' not in config:
+        config['staff_start_nodes'] = ()
 
     # Set up environment and run
     env = simpy.Environment()
     store = Store(env, G, max_customers_in_store=max_customers_in_store, logging_enabled=logging_enabled,
-                  staff_conf=(config['n_staff'], []))
+                  staff_start_nodes=config["staff_start_nodes"])
     if with_node_capacity:
         node_capacity = config.get('node_capacity', 2)
         store.enable_node_capacity(node_capacity)
