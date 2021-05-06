@@ -15,8 +15,7 @@ class Store(object):
     def __init__(self, env: simpy.Environment, G: nx.Graph, max_customers_in_store: Optional[int] = None,
                  logging_enabled: bool = False,
                  logger: Optional[logging._loggerClass] = None, staff_start_nodes: Optional[tuple[int]] = (),
-                 path_update_freq: Optional[int] = 5, realtime: Optional[bool] = False,
-                 realtime_parameters: Optional[dict] = {}):
+                 realtime: Optional[bool] = False, realtime_parameters: Optional[dict] = {}):
 
         """
         :param env: Simpy environment on which the simulation runs
@@ -24,25 +23,25 @@ class Store(object):
         :param logging_enabled: Toggle to True to log all simulation outputs
         :param max_customers_in_store: Maximum number of customers in the store
         :param staff_start_nodes: Contains the start nodes for the staff members. An empty list means, there's no staff.
-        :param path_update_freq: How often agents update their paths with realtime path generation
         :param avoidance_factor: With realtime path generation the weight of other customers in a path is calculated by
-        avoidance_factor*num_customers^avoidance_k
+        avoidance_factor*num_customers^avoidance_k  # TODO: E: Remove since this does not exist
         :param avoidance_k: With realtime path generation the weight of other customers in a path is calculated by
-        avoidance_factor*num_customers^avoidance_k
+        avoidance_factor*num_customers^avoidance_k  # TODO: E: Remove since this does not exist
         :param node_visibility: Dictionary where keys are nodes and values are nodes visible from key node. Used for
-        realtime path generation.
+        realtime path generation.  # TODO: E: Remove since this does not exist
         """
         self.n_staff = len(staff_start_nodes)
         # path generation is used
         self.realtime = realtime
         if self.realtime:
-            self.path_update_freq = realtime_parameters['path_update_freq']   # How often the agents recalculate their paths when realtime
-                                                    # path generation is used
+            self.path_update_freq = realtime_parameters['path_update_freq']  # How often the agents recalculate
+            # their paths when realtime
+            # path generation is used
             self.avoidance_factor = realtime_parameters['avoidance_factor']
             self.avoidance_k = realtime_parameters['avoidance_k']
             self.node_visibility = realtime_parameters['node_visibility']
             self.shortest_path_dict = realtime_parameters['shortest_path_dict']
-        self.baskets = {}   # The nodes that the customers want to visit. Used for realtime path generation
+        self.baskets = {}  # The nodes that the customers want to visit. Used for realtime path generation
         self.G = G.copy()
         self.agents_at_nodes = {node: [] for node in self.G}
         self.infected_agents_at_nodes = {node: [] for node in self.G}
@@ -151,7 +150,8 @@ class Store(object):
                 validity = validity and self.G.has_edge(end, start)
         return validity
 
-    def add_agent(self, agent_id: int, start_node: int, infected: bool, wait: float = 0, basket: Optional[List[int]] = []):
+    def add_agent(self, agent_id: int, start_node: int, infected: bool, wait: float = 0,
+                  basket: Optional[List[int]] = []):
         """
         Adds an agent into the store. The agent can currently be either staff member or a customer. A staff member will
         have id < n_staff if n_staff != 0 and customers will have id >= n_staff
@@ -188,7 +188,7 @@ class Store(object):
         @param infected: Whether the customer is infected or not
         @param wait: time to wait outside the store in the que if the store capacity is reached
         """
-        self.add_agent(self, customer_id, start_node, infected, wait)
+        self.add_agent(customer_id, start_node, infected, wait)
 
     def _infect_other_agents_at_node(self, agent_id: int, node: int):
         agent_type = "staff member" if agent_id < self.n_staff else "customer"
@@ -303,24 +303,24 @@ class Store(object):
         :param agent_id: ID of the agent
         """
 
-        def _weight_function(u, v, e):
+        def _weight_function(u, v, e):  # TODO E: What's up with not using u and e?
             """
             Function used to calculate edge weights in the graph
             """
-            agents_in_node = self.node_visibility[(start, v)]*len(self.agents_at_nodes[v])
-            return 1 + self.avoidance_factor*agents_in_node**self.avoidance_k
+            agents_in_node = self.node_visibility[(start, v)] * len(self.agents_at_nodes[v])
+            return 1 + self.avoidance_factor * agents_in_node ** self.avoidance_k
 
         def _heuristic_function(source, target):
             # TODO At the moment shortest_path_dict needs to be in config, should be fixed
             return len(self.shortest_path_dict[source][target][0])
 
         shortest_path = [start]
-        shortest_len = float("inf")
+        shortest_len = float("inf")  # TODO E: Not in use
         not_visited = self.baskets[agent_id]
 
         if len(not_visited) > 0:
             path = nx.algorithms.astar_path(self.G, start, not_visited[0], heuristic=_heuristic_function,
-                                                        weight=_weight_function)
+                                            weight=_weight_function)
             N = min(self.path_update_freq, len(path))
             shortest_path = path[:N]
 
@@ -436,7 +436,7 @@ def two_customers(env: simpy.Environment, customer_id: int, infected: bool, stor
     :param customer_id: ID of customer
     :param infected: True if infected
     :param store: Store object
-    :param path: Assigned customer shopping path
+    :param path_orig: Assigned initial customer shopping path
     :param traversal_time: Mean time before moving to the next node in path (also called waiting time)
     :param thres: Threshold length of queue outside. If queue exceeds threshold, customer does not enter
     the queue and leaves.

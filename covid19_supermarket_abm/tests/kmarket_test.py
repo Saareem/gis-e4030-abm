@@ -28,14 +28,6 @@ config = {'arrival_rate': 2.55,
           'node_visibility': node_visibility,
           'staff_start_nodes': (27, 27)}  # Start nodes for the staff
 
-
-# load synthetic data
-
-zone_paths = load_example_paths()
-G = load_kmarket_store_graph()
-shortest_path_dict = get_all_shortest_path_dicts(G)
-node_visibility = node_visibility(G)
-
 # Create a path generator which feeds our model with customer paths
 weights = create_weights(random_weights = True)
 item_nodes = [i for i in range(1, 106) if not i in [1, 2, 3, 23, 51, 52, 53, 54, 55]]
