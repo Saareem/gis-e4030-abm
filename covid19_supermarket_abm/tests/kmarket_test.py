@@ -25,7 +25,16 @@ config = {'arrival_rate': 2.55,
           'shortest_path_dict': shortest_path_dict,
           'avoidance_factor': 2,
           'avoidance_k': 1.5,
-          'node_visibility': node_visibility}
+          'node_visibility': node_visibility,
+          'staff_start_nodes': (27, 27)}  # Start nodes for the staff
+
+
+# load synthetic data
+
+zone_paths = load_example_paths()
+G = load_kmarket_store_graph()
+shortest_path_dict = get_all_shortest_path_dicts(G)
+node_visibility = node_visibility(G)
 
 # Create a path generator which feeds our model with customer paths
 weights = create_weights(random_weights = True)
