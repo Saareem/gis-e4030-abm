@@ -406,6 +406,7 @@ def staff_member(env: simpy.Environment, staff_id: int, infected: bool, store: S
     store.add_agent(staff_id, start, infected)
     yield env.timeout(1)
     while store.is_open or store.number_customers_in_store() > 0:
+        start = path[-1]
         nbrs = store.G.neighbors(start)
         v_nbrs = []  # Neighbors where the staff member can move
         for n in nbrs:
@@ -421,7 +422,7 @@ def staff_member(env: simpy.Environment, staff_id: int, infected: bool, store: S
             has_moved = store.move_agent(staff_id, infected, start, end)
             path.append(end)  # Store the path for further use and logging purposes
     yield env.timeout(random.expovariate(1 / traversal_time))  # wait before leaving the store
-    #store.remove_agent(staff_id, path[-1], infected)
+    store.remove_agent(staff_id, path[-1], infected)
 
 
 def two_customers(env: simpy.Environment, customer_id: int, infected: bool, store: Store, path_orig: List[int],
@@ -495,7 +496,7 @@ def _stats_recorder(store: Store):
 
 
 def _agent_arrivals(env: simpy.Environment, store: Store, path_generator, config: dict, popular_hours,
-                    num_hours_open, n_staff: Optional[int] = 0):
+                    num_hours_open):
     """Process that creates all agents."""
     hour_nro = 0
     arrival_rate = config['arrival_rate'] * popular_hours[hour_nro] / popular_hours.mean()
@@ -506,10 +507,9 @@ def _agent_arrivals(env: simpy.Environment, store: Store, path_generator, config
     agent_id = 0
 
     store.open_store()
-    for i in range(agent_id, n_staff):
+    for i in range(0, store.n_staff):
         infected = np.random.rand() < infection_proportion
         env.process(staff_member(env, i, infected, store, traversal_time))
-        i += 1
         agent_id += 1
     yield env.timeout(random.expovariate(arrival_rate))
     while env.now < num_hours_open * 60:
@@ -537,20 +537,20 @@ def _sanity_checks(store: Store,
     infectious_contacts_list = [i for i in store.number_encounters_with_infected.values() if i != 0]
     num_susceptible = len(store.number_encounters_with_infected)
     num_infected = len(store.infected_agents)
-    num_cust = len(store.agents)
+    num_agents = len(store.agents)
 
     try:
         assert sum(infectious_contacts_list) == sum(store.number_encounters_per_node.values()), \
             "Number of infectious contacts doesn't add up"
-        assert num_infected + num_susceptible == num_cust, \
+        assert num_infected + num_susceptible == num_agents, \
             "Number of infected and susceptible customers doesn't add up to total number of customers"
+        # TODO: Eemeli: Breaks the program if the test error is raised and there are staff members. Consider fixing.
+        agents_at_nodes = [len(val) for val in store.infected_agents_at_nodes.values()]
+        assert max(agents_at_nodes) == 0, \
+            f"{sum(agents_at_nodes)} customers have not left the store. {store.infected_agents_at_nodes}"
 
-        customers_at_nodes = [len(val) for val in store.infected_agents_at_nodes.values()]
-        assert max(customers_at_nodes) == 0, \
-            f"{sum(customers_at_nodes)} customers have not left the store. {store.infected_agents_at_nodes}"
-        # TODO: Eemeli: Will most likely fail with general agent. Fix test if it's used.
         assert max([len(val) for val in store.agents_at_nodes.values()]) == 0, \
-            f"{sum(customers_at_nodes)} customers have not left the store. {store.agents_at_nodes}"
+            f"{sum(agents_at_nodes)} customers have not left the store. {store.agents_at_nodes}"
         assert set(store.waiting_times.keys()) == set(store.agents), \
             'Some customers are not recorded in waiting times (or vice versa)'
         assert all([val >= 0 for val in store.waiting_times.values()]), \
