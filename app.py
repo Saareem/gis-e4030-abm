@@ -18,7 +18,7 @@ def index():
         config = {'arrival_rate': float(request.form['param1']),
                   'traversal_time': float(request.form['param2']),
                   'infection_proportion': float(request.form['param3']),
-                  'logging_enabled': 'True',
+                  'logging_enabled': False,
                   'duration_days': int(request.form['param4']),
                   'day': int(request.form['param5']),
                   'customers_together': float(request.form['param6']),

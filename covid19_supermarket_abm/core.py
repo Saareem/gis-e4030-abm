@@ -14,8 +14,8 @@ class Store(object):
 
     def __init__(self, env: simpy.Environment, G: nx.Graph, max_customers_in_store: Optional[int] = None,
                  logging_enabled: bool = False,
-                 logger: Optional[logging._loggerClass] = None, staff_start_nodes: Optional[tuple[int]] = (),
-                 realtime: Optional[bool] = False, realtime_parameters: Optional[dict] = {}):
+                 logger: Optional[logging._loggerClass] = None, staff_start_nodes: tuple[int] = (),
+                 realtime=False, realtime_parameters={}):
 
         """
         :param env: Simpy environment on which the simulation runs
