@@ -2,7 +2,7 @@ import datetime
 import logging
 import random
 import uuid
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import networkx as nx
 import numpy as np
@@ -14,7 +14,7 @@ class Store(object):
 
     def __init__(self, env: simpy.Environment, G: nx.Graph, max_customers_in_store: Optional[int] = None,
                  logging_enabled: bool = False,
-                 logger: Optional[logging._loggerClass] = None, staff_start_nodes: tuple[int] = (),
+                 logger: Optional[logging._loggerClass] = None, staff_start_nodes: Tuple[int] = (),
                  realtime=False, realtime_parameters={}):
 
         """
