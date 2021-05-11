@@ -1,7 +1,7 @@
 import logging
 import multiprocessing
 from itertools import repeat
-
+import timeit
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -14,6 +14,7 @@ from covid19_supermarket_abm.utils.load_kmarket_data import load_popular_hours
 
 def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_generator_args: list):
     # Get parameters
+    start = timeit.default_timer()
     if 'day' not in config:
         config['day'] = 0
     popular_hours = load_popular_hours().iloc[:, config['day']]
@@ -100,6 +101,7 @@ def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_ge
         results['mean_num_cust_in_store_per_sqm'] = results['mean_num_cust_in_store'] / floorarea
         results['max_num_cust_in_store_per_sqm'] = results['max_num_cust_in_store'] / floorarea
     results['logs'] = store.logs
+    results['runtime'] = timeit.default_timer() - start
     return results
 
 

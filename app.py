@@ -23,7 +23,15 @@ def index():
                   'day': int(request.form['param5']),
                   'customers_together': float(request.form['param6']),
                   'realtime': 'param7' in request.form}
-        config2 = config.copy()
+
+        # Config2 for clean up parameters
+        config2 = {'Rate at which customers arrive to the store (in customers per minute)': config['arrival_rate'],
+                   'Mean wait time at each node (in minutes)': config['traversal_time'],
+                   'Proportion of customers that are infected': config['infection_proportion'],
+                   'Number of days simulated': config['duration_days'],
+                   'Starting week day': config['day'],
+                   'Proportion of customers shopping together': config['customers_together'],
+                   'Realtime path generator actived': config['realtime']}
 
         # Initialize model
         zone_paths = load_example_paths()
@@ -59,13 +67,14 @@ def index():
             'Total number of customers': init_results_dict['num_cust'],
             'Number of susceptible customers': init_results_dict['num_S'],
             'Number of infected customers': init_results_dict['num_I'],
-            'Total exposure time': round(init_results_dict['total_exposure_time'],2),
+            'Total exposure time': round(init_results_dict['total_exposure_time'], 2),
             'Number of susceptible customers which have at least one contact with an infectious customer': init_results_dict['num_cust_w_contact'],
-            'Mean number of customers in the store during the simulation': round(init_results_dict['mean_num_cust_in_store'],2),
+            'Mean number of customers in the store during the simulation': round(init_results_dict['mean_num_cust_in_store'], 2),
             'Maximum number of customers in the store during the simulation': init_results_dict['max_num_cust_in_store'],
             'Total number of contacts between infectious customers and susceptible customers': init_results_dict['num_contacts'],
-            'Mean of the shopping times': round(init_results_dict['mean_shopping_time'],2),
+            'Mean of the shopping times': round(init_results_dict['mean_shopping_time'], 2),
             "Length of the store's opening hours (in minutes)": init_results_dict['store_open_length'],
+            'Running time per day': round(init_results_dict['runtime'], 2)
         }
 
 
