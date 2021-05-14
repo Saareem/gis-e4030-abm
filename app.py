@@ -5,6 +5,7 @@ from covid19_supermarket_abm.utils.create_synthetic_baskets import get_all_short
 from covid19_supermarket_abm.simulator import simulate_one_day, simulate_several_days
 from covid19_supermarket_abm.utils.create_weights import create_weights
 from covid19_supermarket_abm.utils.node_visibility import node_visibility
+from covid19_supermarket_abm.utils.visualize import visualize_single_day, visualize_multiple_days
 
 app = Flask(__name__)
 
@@ -57,10 +58,13 @@ def index():
         # Simulate one day or several days based on user input
         if config['duration_days'] == 1:
             init_results_dict = simulate_one_day(config, G, path_generator_function, path_generator_args)
+            result_images = visualize_single_day(G, init_results_dict)
         else:
             init_results_dict, df_num_encounter_per_node_stats, df_encounter_time_per_node_stats = simulate_several_days(
                 config, G, path_generator_function, path_generator_args, num_iterations=config['duration_days'],
                 use_parallel=False)
+            result_images = visualize_multiple_days(G, df_encounter_time_per_node_stats, df_encounter_time_per_node_stats,
+                            days=config['duration_days'])
 
         # Change dict keys and select only relevant variables
         results_dict = {
@@ -77,9 +81,6 @@ def index():
             'Running time per day': round(init_results_dict['runtime'], 2)
         }
 
-
-        # Get visualizations
-        result_images = ['static/images/cat-meme.jpg']  # TODO: Hermanni: Add visualizations
 
         # Display new page where you can see results
         return render_template('results.html', config2=config2, result_dict=results_dict, result_images=result_images)

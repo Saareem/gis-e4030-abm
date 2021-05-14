@@ -1,90 +1,154 @@
+import base64
+import io
 import os
-
+from PIL import Image
 import matplotlib.pyplot as plt
 import networkx as nx
+import matplotlib as mpl
 
-def visualize_single_day(G, dictionary, variable):
+
+def visualize_single_day(G, dictionary, ):
     """
     Function for visualizing a single-day simulation
     :param G: a networkx graph of the store
     :param dictionary: the results_dict of the simulation
-    :param variable: dictionary: the results dictionary of the simulation
-    :param variable: the variable being visualized: 1 for 'num_encounters_per_node' and 2 for 'exposure_time_per_node'.
-    Default 2.
-    :return: 0
+    :return: image_list: a list of two base64 encoded images
     """
+
     # define the positions of axes
     pos = {node: (y, x) for (node, (x, y)) in nx.get_node_attributes(G, 'pos').items()}
 
-    if variable == 1:
-        df = 'df_num_encounters_per_node'
-        plt.title('Exposure time per node, 1 iteration')
-    if variable == 2:
-        df = 'df_exposure_time_per_node'
-        plt.title('Number of encounters per node, 1 iteration')
+    # define images 1 and 2
+    fig1 = plt.figure(figsize=[12, 8])
+    df1 = 'df_num_encounters_per_node'
+    plt.title('Number of encounters per node, 1 iteration', figure = fig1)
 
+
+    # draw figure 1
     draw_edges = nx.draw_networkx_edges(G, pos)
-    draw_nodes = nx.draw_networkx_nodes(G, pos, node_color=dictionary[df], cmap=plt.get_cmap('viridis'))
+    draw_nodes = nx.draw_networkx_nodes(G, pos, node_color=dictionary[df1], cmap=plt.get_cmap('viridis'))
     draw_labels = nx.draw_networkx_labels(G, pos, font_color='w')
-    plt.colorbar(draw_nodes)
-
-    plt.show()
-
-    return 0
+    cbar = plt.colorbar(draw_nodes)
+    cbar.set_label('N:o of encounters')
 
 
+    # transform fig1 to png and then to bytearray
+    img = fig2img(fig1)
+    byte_arr = io.BytesIO()
+    img.save(byte_arr, format='png')
+    img = byte_arr.getvalue()
 
+    # fig1 to base64 encoding
+    image_data = base64.b64encode(img)
+    if not isinstance(image_data, str):
+        image_data = image_data.decode()
 
-def visualize_multiple_days(G, dictionary, variable=2, categorize=False, ):
+    # save to list
+    result_images = []
+    result_images.append('data:image/png;base64,' + image_data)
+
+    fig2 = plt.figure(figsize=[12, 8])
+    df2 = 'df_exposure_time_per_node'
+    plt.title('Exposure time per node, 1 iteration', figure=fig2)
+
+    # draw figure 2
+    draw_edges = nx.draw_networkx_edges(G, pos)
+    draw_nodes = nx.draw_networkx_nodes(G, pos, node_color=dictionary[df2], cmap=plt.get_cmap('magma'))
+    draw_labels = nx.draw_networkx_labels(G, pos, font_color='w')
+    cbar = plt.colorbar(draw_nodes)
+    cbar.set_label('minutes')
+
+    # fig2 to bytearray
+    img = fig2img(fig2)
+
+    byte_arr = io.BytesIO()
+    img.save(byte_arr, format='png')
+    img = byte_arr.getvalue()
+
+    # fig2 to base64
+    image_data = base64.b64encode(img)
+    if not isinstance(image_data, str):
+        image_data = image_data.decode()
+
+    # save to list
+    result_images.append('data:image/png;base64,' + image_data)
+
+    return result_images
+
+def visualize_multiple_days(G, encounters, exposure_time, days):
     """
     This is a function for visualizing a multiple-day simulation.
     :param G: a networkx graph of the store
-    :param dictionary: the results dictionary of the simulation
-    :param variable: the variable being visualized: 1 for 'num_encounters_per_node' and 2 for 'exposure_time_per_node'.
-    Default: 2.
-    :param categorize: if True, the results will be categorize in a predefined manner. Default: False. Should only be
-    used with 'exposure_time_per_node' for sane results
-    :return: none
+    :param encounters: the results dataframe containing the encounter stats
+    :param exposure_time: the results dataframe containing the exposure time stats
+    :param days: number of simulation days
+    :return: list of two base64 images
     """
     # calculate the mean of the results from the results dict
-    mean_results = dictionary[variable].mean(axis=0)
+    mean_encounters = encounters.mean(axis=0)
+    mean_exposure_time = exposure_time.mean(axis=0)
 
     # define the positions of axes
     pos = {node:(y,x) for (node, (x,y)) in nx.get_node_attributes(G, 'pos').items()}
 
-    if categorize == True:
-        mean_results['category'] = mean_results.apply(categorize_variable)
-        draw_edges = nx.draw_networkx_edges(G, pos)
-        draw_nodes = nx.draw_networkx_nodes(G, pos, node_color=mean_results['category'], cmap=plt.get_cmap('viridis'))
-        draw_labels = nx.draw_networkx_labels(G, pos, font_color='w')
-    else:
-        draw_edges = nx.draw_networkx_edges(G, pos)
-        draw_nodes = nx.draw_networkx_nodes(G, pos, node_color=mean_results, cmap=plt.get_cmap('viridis'))
-        draw_labels = nx.draw_networkx_labels(G, pos, font_color='w')
-        plt.colorbar(draw_nodes)
+    fig1 = plt.figure(figsize=[12, 8])
+    plt.title('Mean number of encounters per node, '+str(days)+' iterations', figure=fig1)
 
-    plt.show()
+    draw_edges = nx.draw_networkx_edges(G, pos)
+    draw_nodes = nx.draw_networkx_nodes(G, pos, node_color=mean_encounters, cmap=plt.get_cmap('viridis'))
+    draw_labels = nx.draw_networkx_labels(G, pos, font_color='w')
+    cbar = plt.colorbar(draw_nodes)
+    draw_nodes.set_clim(0, 15)
+    cbar.set_label('N:o of encounters')
 
-    return 0
 
-def categorize_variable(var):
-    """
-    Categorizes the chosen variable in a predefined, heuristic manner for comparisons between different runs.
-    :param var: the value of variable being categorized
-    :return: a category color
-    TODO: Very high values are sometimes categorized as white. Find out why.
-    """
-    if var == 0:
-        return 'c'
-    if 0 < var < 0.5:
-        return 'b'
-    if 0.5 >= var < 1:
-        return 'g'
-    if 1 >= var < 1.5:
-        return 'y'
-    if 1.5 >= var < 2:
-        return 'r'
-    if var >= 2:
-        return 'k'
-    else:
-        return 'w'
+    # transform fig1 to png and then to bytearray
+    img = fig2img(fig1)
+    byte_arr = io.BytesIO()
+    img.save(byte_arr, format='png')
+    img = byte_arr.getvalue()
+
+    # fig1 to base64 encoding
+    image_data = base64.b64encode(img)
+    if not isinstance(image_data, str):
+        image_data = image_data.decode()
+
+    # save to list
+    result_images = []
+    result_images.append('data:image/png;base64,' + image_data)
+    print(len(result_images))
+
+    fig2 = plt.figure(figsize=[12, 8])
+    plt.title('Mean number of exposure time node, '+str(days)+' iterations', figure=fig2)
+
+    draw_edges = nx.draw_networkx_edges(G, pos)
+    draw_nodes = nx.draw_networkx_nodes(G, pos, node_color=mean_exposure_time, cmap=plt.get_cmap('inferno'))
+    draw_labels = nx.draw_networkx_labels(G, pos, font_color='w')
+    cbar = plt.colorbar(draw_nodes)
+    draw_nodes.set_clim(0, 3)
+    cbar.set_label('minutes')
+
+    # transform fig1 to png and then to bytearray
+    img = fig2img(fig2)
+    byte_arr = io.BytesIO()
+    img.save(byte_arr, format='png')
+    img = byte_arr.getvalue()
+
+    # fig1 to base64 encoding
+    image_data = base64.b64encode(img)
+    if not isinstance(image_data, str):
+        image_data = image_data.decode()
+
+    # save to list
+    result_images.append('data:image/png;base64,' + image_data)
+
+    return result_images
+
+def fig2img(fig):
+    """Convert a Matplotlib figure to a PIL Image and return it"""
+    import io
+    buf = io.BytesIO()
+    fig.savefig(buf)
+    buf.seek(0)
+    img = Image.open(buf)
+    return img
