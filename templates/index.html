@@ -9,7 +9,7 @@
     <h1 style="text-align: center">Set parameters for config and press RUN</h1>
 
     <div class="form">
-        <form action="/" method="POST">
+        <form action="/" onsubmit="return start()" method="POST">
             <label for="param1">Arrival rate:</label>
             <input type="number" name="param1" id="param1" value="2.55" step="0.05" min="0" max="5" required="required" placeholder="Set a value for the arrival rate"><br>
 
@@ -33,7 +33,9 @@
 
             <input type="submit" value="RUN">
         </form>
-    </div>
+    </div><br>
+
+    <button onClick="window.location.reload();">Reset parameters</button>
 
     <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
         magna aliqua. Id venenatis a condimentum vitae. Justo nec ultrices dui sapien eget mi proin. Sed faucibus turpis in eu mi
