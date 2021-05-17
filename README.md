@@ -1,5 +1,5 @@
 # Agent-based model for COVID-19 transmission in supermarkets. 
-This code accompanies the paper ["Modelling COVID-19 transmission in supermarkets using an agent-based model"](https://arxiv.org/abs/2010.07868).
+This code accompanies the paper ["Modelling COVID-19 transmission in supermarkets using an agent-based model"](https://arxiv.org/abs/2010.07868). This README is based on Fabian Ying's work. Original repository and README can be find [here](https://github.com/fabianying/covid19-supermarket-abm). 
 
 # Installation
 
@@ -11,6 +11,8 @@ Our package relies mainly on [SimPy](https://simpy.readthedocs.io/en/latest/), w
 
 # Example
 
+Easiest way to run model with different parameters is to use [web application](https://covid19-abm.azurewebsites.net/) (if it is working).
+ 
 In the example below, we use the example data included in the package to simulate a day in the fictitious store
 given the parameters below.
 
@@ -69,6 +71,8 @@ Key | Description
 `df_exposure_time_per_node` | Dataframe containing the exposure time per node
 `total_time_crowded` | Total time that nodes were crowded (when there are more than `thres` number of customers in a node. Default value of `thres` is 3)
 `exposure_times` | List of exposure times of customers (only recording positive exposure times)
+`store_open_length` | Length of the store's opening hours in minutes
+`runtime` | Total running time per simulated day 
 
  # Getting started
 
@@ -92,7 +96,7 @@ Key | Description
  ## Simulation configurations
 
  We input the configuration using a dictionary.
- The following keys are accepted:
+ The following keys are accepted and this might differ a bit in web application:
 
 
  ### Mandatory config keys
@@ -112,6 +116,10 @@ Key | Description
  `with_node_capacity` | Set to `True` to limit the number of customers in each node. (Default: `False`). WARNING: This may cause simulations not to terminate due to gridlocks. 
  `node_capacity` | The number of customers allowed in each node, if  `with_node_capacity` is set to `True`. (Default: `2`)
  `logging_enabled` | Set to `True` to start logging simulations. (Default: `False`). The logs can be accessed in `results_dict['logs']`. Also if sanity checks fail, logs will be saved to file. 
+ `duration_days` | The number of days in simulation. If more than `1`, uses simulate_several_days - function. (Default: `1`)
+ `day` | Starting week day. Relevant if opening hours are defined and user wants to simulate only one day. (Default: `0` i.e. monday)
+ `customers_together` | Proportion of customers shopping together. Number between 0 and 1. (Default: `0`)
+ `realtime` | Set to `true` to allow customers to avoid each other by using real time path generators. (Default: `False`) WARNING: This will make code 3-4 time slower. 
 
 
  ## Store network
@@ -154,11 +162,13 @@ G = create_store_network(pos, edges, directed=True)
 The path generator is what its name suggests: 
 It is a [generator](https://wiki.python.org/moin/Generators) that yields full customer paths.
 
-There are two* path generators implemented in this package.
+There are three* path generators implemented in this package.
 
 (1) Empirical path generator
 
 (2) Synthetic path generator
+
+(3) Real-time path generator
 
 You can also implement your own path generator and pass it.
 
@@ -170,7 +180,7 @@ from covid19_supermarket_abm.path_generators import get_path_generator
 path_generator_function, path_generator_args = get_path_generator(path_generation, **args) 
 ```
 
-\*There is a [third generator](https://github.com/fabianying/covid19-supermarket-abm/blob/12504eabfad03e2ffe0a6c9aac230d19e24c492a/covid19_supermarket_abm/path_generators.py#L196) implemented, but for most purposes, the first two are likely preferable.
+\*There is a [fourth generator](https://github.com/fabianying/covid19-supermarket-abm/blob/12504eabfad03e2ffe0a6c9aac230d19e24c492a/covid19_supermarket_abm/path_generators.py#L196) implemented, but for most purposes, the first three are likely preferable.
 
 ### Empirical path generator 
 The empirical path generator takes as input a list of full paths 
@@ -240,7 +250,17 @@ path_generator_function, path_generator_args = get_path_generator(path_generatio
  Note that this path generator may be quite slow. In the paper, we first pre-generated paths 100,000 paths 
  and then used the Empirical path generator with the pre-generated paths.  
 
+### Real-time path generator
+
+This path generator allows customers to avoid each other in store. If some node is too conqested, customer will find a new path. As you can see from the name, this generator works in real time, which makes code 3-4 times slower.  
+
  # Questions?
 
+Original repository:
  This is work in progress, but feel free to ask any questions by raising an issue or contacting me directly under 
  [fabian.m.ying@gmail.com](fabian.m.ying@gmail.com).
+ 
+Forked repository:
+ Feel free to ask something
+ [Alpo.96@gmail.com](Alpo.96@gmail.com)
+ 
