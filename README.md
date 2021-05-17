@@ -1,6 +1,24 @@
 # Agent-based model for COVID-19 transmission in supermarkets. 
 This code accompanies the paper ["Modelling COVID-19 transmission in supermarkets using an agent-based model"](https://arxiv.org/abs/2010.07868). This README is based on Fabian Ying's work. Original repository and README can be find [here](https://github.com/fabianying/covid19-supermarket-abm). 
 
+Differences between Fabian Ying's original and ours forked repository:
+
+(1) [Web application](https://github.com/fabianying/covid19-supermarket-abm)
+
+(2) Real-time path generator
+
+(3) Some customers might arrive in pairs
+
+(4) Staff is included
+
+(5) In addition of numerical result, also visualizations can be displayed
+
+(6) Popular hours and week days are included
+
+(7) Other minor modifications - like calculating running time - are included
+
+
+
 # Installation
 
 Our package relies mainly on [SimPy](https://simpy.readthedocs.io/en/latest/), which requires Python >= 3.6.
@@ -11,10 +29,10 @@ Our package relies mainly on [SimPy](https://simpy.readthedocs.io/en/latest/), w
 
 # Example
 
-Easiest way to run model with different parameters is to use [web application](https://covid19-abm.azurewebsites.net/) (if it is working).
+If you only want to run the application, you can use [web application](https://covid19-abm.azurewebsites.net/) (if it is working).
  
-In the example below, we use the example data included in the package to simulate a day in the fictitious store
-given the parameters below.
+In the example below, we use locally the example data included in the package to simulate a day in the fictitious store
+given the parameters below. 
 
 ```python
 from covid19_supermarket_abm.utils.load_example_data import load_example_store_graph, load_example_paths
@@ -39,14 +57,14 @@ path_generator_function, path_generator_args = get_path_generator(zone_paths=zon
 results_dict = simulate_one_day(config, G, path_generator_function, path_generator_args)
 ```
 
-The results from our simulations are stored in `results_dict`.
+The results from our simulations are stored in `results_dict` and/or `result_images`.
 
 ```python
 print(list(results_dict.keys()))
 ```
 Output:
 ```python
-['num_cust', 'num_S', 'num_I', 'total_time_with_infected', 'num_contacts_per_cust', 'num_cust_w_contact', 'mean_num_cust_in_store', 'max_num_cust_in_store', 'num_contacts', 'shopping_times', 'mean_shopping_time', 'num_waiting_people', 'mean_waiting_time', 'store_open_length', 'df_num_encounters', 'df_time_with_infected', 'total_time_crowded', 'exposure_times']
+['num_cust', 'num_S', 'num_I', 'total_exposure_time', 'num_contacts_per_cust', 'num_cust_w_contact', 'mean_num_cust_in_store', 'max_num_cust_in_store', 'num_contacts', 'shopping_times', 'mean_shopping_time', 'num_waiting_people', 'mean_waiting_time', 'store_open_length', 'df_num_encounters_per_node', 'df_exposure_time_per_node', 'total_time_crowded', 'exposure_times', 'logs', 'runtime']
 ```
 
 See below for their description.
@@ -117,7 +135,7 @@ Key | Description
  `node_capacity` | The number of customers allowed in each node, if  `with_node_capacity` is set to `True`. (Default: `2`)
  `logging_enabled` | Set to `True` to start logging simulations. (Default: `False`). The logs can be accessed in `results_dict['logs']`. Also if sanity checks fail, logs will be saved to file. 
  `duration_days` | The number of days in simulation. If more than `1`, uses simulate_several_days - function. (Default: `1`)
- `day` | Starting week day. Relevant if opening hours are defined and user wants to simulate only one day. (Default: `0` i.e. monday)
+ `day` | Starting week day. Relevant if popular times are defined and user wants to simulate only one day. (Default: `0` i.e. monday)
  `customers_together` | Proportion of customers shopping together. Number between 0 and 1. (Default: `0`)
  `realtime` | Set to `true` to allow customers to avoid each other by using real time path generators. (Default: `False`) WARNING: This will make code 3-4 time slower. 
 
@@ -156,6 +174,12 @@ from covid19_supermarket_abm.utils.create_store_network import create_store_netw
 edges = [(0,1), (1,3), (3,1), (0,2), (3,2), (2,3)]
 G = create_store_network(pos, edges, directed=True) 
 ```
+ 
+ ## Popular times per day
+ 
+If you want to include popular times of the real-life market, you can copy the data from Google Maps, for example. 
+
+Create a tsv-file that contains seven columns for each day and multiple rows for every hours. Each cell represent the popularity of specific hour as a values between 1 and 100. The most popular hour is represented as value 100. When the store is closed, the cell is blank. You can see example [here](https://github.com/Saareem/gis-e4030-abm/blob/main/covid19_supermarket_abm/kmarket_data/kmarket_popular_hours.txt).
  
  ## Path generator and arguments
 
@@ -253,6 +277,12 @@ path_generator_function, path_generator_args = get_path_generator(path_generatio
 ### Real-time path generator
 
 This path generator allows customers to avoid each other in store. If some node is too conqested, customer will find a new path. As you can see from the name, this generator works in real time, which makes code 3-4 times slower.  
+
+# Web application
+
+Web application is in progress, but it is based on [app.py](https://github.com/Saareem/gis-e4030-abm/blob/main/app.py) - file and [flask](https://flask.palletsprojects.com/en/2.0.x/)-library for Python. The application is used mainly as a graphical user interface of original code.  
+
+Web application contains several html-files and one css-file. Most html-files are extended from base.html. Our web application is deployed to Azure, so requirements.txt is needed. If application is working, you can find it from url: [https://covid19-abm.azurewebsites.net/](https://covid19-abm.azurewebsites.net/)
 
  # Questions?
 
