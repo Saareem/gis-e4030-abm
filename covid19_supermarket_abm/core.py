@@ -510,7 +510,7 @@ def _agent_arrivals(env: simpy.Environment, store: Store, path_generator, config
     infection_proportion = config['infection_proportion']
     traversal_time = config['traversal_time']
     if 'customers_together' not in config:
-        config['customers_together'] = 1e-12  # TODO: Eemeli: Consider fixing this in other way.
+        config['customers_together'] = 0
     agent_id = 0
 
     store.open_store()
