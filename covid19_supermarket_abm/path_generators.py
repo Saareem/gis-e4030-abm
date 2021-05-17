@@ -124,8 +124,8 @@ def sythetic_paths_generator(mu, sigma, entrance_nodes, till_nodes, exit_nodes, 
     """The synthetic path generator generates a random customer path as follows:
     First, it samples the size K of the shopping basket using a log-normal random variable with parameter mu and sigma.
     Second, it chooses a random entrance node as the first node v_1 in the path.
-    Third, it samples K random item nodes, chosen uniformly at random with replacement from item_nodes, which we denote by
-    v_2, ... v_K+1.
+    Third, it samples K random item nodes, chosen uniformly or using the weights parameter with replacement from
+    item_nodes, which we denote by v_2, ... v_K+1.
     Fourth, it samples a random till node and exit node, which we denote by v_K+2 and v_K+3.
     The sequence v_1, ..., v_K+3 is a node sequence where the customer bought items, along the the entrance, till and exit
     nodes that they visited.
@@ -146,21 +146,17 @@ def sythetic_paths_generator(mu, sigma, entrance_nodes, till_nodes, exit_nodes, 
             yield full_path
 
 
-def realtime_paths_generator(mu, sigma, entrance_nodes, till_nodes, exit_nodes, item_nodes
+def runtime_paths_generator(mu, sigma, entrance_nodes, till_nodes, exit_nodes, item_nodes
                              , weights=None, batch_size=1000):
-    # TODO Fix the description
     """The synthetic path generator generates a random customer path as follows:
     First, it samples the size K of the shopping basket using a log-normal random variable with parameter mu and sigma.
     Second, it chooses a random entrance node as the first node v_1 in the path.
-    Third, it samples K random item nodes, chosen uniformly at random with replacement from item_nodes, which we denote by
-    v_2, ... v_K+1.
+    Third, it samples K random item nodes, chosen uniformly or using the weights parameter with replacement from
+    item_nodes, which we denote by v_2, ... v_K+1.
     Fourth, it samples a random till node and exit node, which we denote by v_K+2 and v_K+3.
     The sequence v_1, ..., v_K+3 is a node sequence where the customer bought items, along the the entrance, till and exit
     nodes that they visited.
-    Finally, we convert this sequence to a full path on the network using the shortest paths between consecutive nodes
-    in the sequence.
-    We use shortest_path_dict for this.
-    For more information, see the Data section in https://arxiv.org/pdf/2010.07868.pdf
+    During runtime the customers update their paths to the next node in the sequence according to given parameters.
 
     The batch_size specifies how many paths we generate in each batch (for efficiency reasons).
     """
@@ -170,7 +166,7 @@ def realtime_paths_generator(mu, sigma, entrance_nodes, till_nodes, exit_nodes, 
         item_paths = create_random_item_paths(num_items, entrance_nodes, till_nodes, exit_nodes, item_nodes,
                                               weights=weights)
         for item_path in item_paths:
-            yield [-1] + item_path
+            yield item_path
 
 
 def get_next_term(num_states, trow):
@@ -205,7 +201,7 @@ def get_path_generator(path_generation: str = 'empirical', G: Optional[nx.Graph]
                        full_paths: Optional[List[List[int]]] = None,
                        zone_paths: Optional[List[List[int]]] = None,
                        synthetic_path_generator_args: Optional[list] = None,
-                       realtime_path_generator_args: Optional[list] = None):
+                       runtime_path_generator_args: Optional[list] = None):
     """Create path generator functions.
     Note that a zone path is a sequence of zones that a customer purchased items from, so consecutive zones in the sequence
     may not be adjacent in the store graph. We map the zone path to the full shopping path by assuming that
@@ -247,16 +243,16 @@ def get_path_generator(path_generation: str = 'empirical', G: Optional[nx.Graph]
         tmatrix = get_transition_matrix(shopping_paths, len(G))
         path_generator_function = path_generator_from_transition_matrix
         path_generator_args = [tmatrix, shortest_path_dict]
-    elif path_generation == 'realtime':
+    elif path_generation == 'runtime':
         assert G is not None
-        assert realtime_path_generator_args is not None
-        assert type(realtime_path_generator_args) is list
-        assert len(realtime_path_generator_args) in [6, 7], \
-            "If you use path_generation='realtime', " \
-            "you need to input realtime_path_generator_args=" \
+        assert runtime_path_generator_args is not None
+        assert type(runtime_path_generator_args) is list
+        assert len(runtime_path_generator_args) in [6, 7], \
+            "If you use path_generation='runtime', " \
+            "you need to input runtime_path_generator_args=" \
             "[mu, sigma, entrance_nodes, till_nodes, exit_nodes, item_nodes]"
-        path_generator_function = realtime_paths_generator
-        path_generator_args = realtime_path_generator_args
+        path_generator_function = runtime_paths_generator
+        path_generator_args = runtime_path_generator_args
     else:
         raise ValueError(f'Unknown path_generation scheme == {path_generation}')
     return path_generator_function, path_generator_args

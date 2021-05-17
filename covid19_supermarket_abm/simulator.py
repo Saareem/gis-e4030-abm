@@ -34,22 +34,22 @@ def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_ge
                              'you need to specify the floor area via the "floorarea" parameter in the config.')
 
     config['staff_start_nodes'] = config.get('staff_start_nodes', ())
-    realtime_parameters = {}
-    realtime = config.get('realtime', False)
-    if realtime:
-        realtime_parameters['path_update_freq'] = config.get('path_update_freq', 5)
-        realtime_parameters['avoidance_factor'] = config.get('avoidance_factor', 1)
-        realtime_parameters['avoidance_k'] = config.get('avoidance_k', 1.5)
-        realtime_parameters['node_visibility'] = config.get('node_visibility', None)
-        realtime_parameters['shortest_path_dict'] = config.get('shortest_path_dict', None)
-        if realtime_parameters['node_visibility'] is None or realtime_parameters['shortest_path_dict'] is None:
-            raise Exception('node_visibility and shortest_path_dict need to be specified for realtime path generation')
+    runtime_parameters = {}
+    runtime = config.get('runtime', False)
+    if runtime:
+        runtime_parameters['path_update_interval'] = config.get('path_update_interval', 5)
+        runtime_parameters['avoidance_factor'] = config.get('avoidance_factor', 1)
+        runtime_parameters['avoidance_k'] = config.get('avoidance_k', 1.5)
+        runtime_parameters['node_visibility'] = config.get('node_visibility', None)
+        runtime_parameters['shortest_path_dict'] = config.get('shortest_path_dict', None)
+        if runtime_parameters['node_visibility'] is None or runtime_parameters['shortest_path_dict'] is None:
+            raise Exception('node_visibility and shortest_path_dict need to be specified for runtime path generation')
 
     # Set up environment and run
     env = simpy.Environment()
     store = Store(env, G, max_customers_in_store=max_customers_in_store, logging_enabled=logging_enabled,
-                  staff_start_nodes=config["staff_start_nodes"], realtime=realtime,
-                  realtime_parameters=realtime_parameters)
+                  staff_start_nodes=config["staff_start_nodes"], runtime=runtime,
+                  runtime_parameters=runtime_parameters)
     if with_node_capacity:
         node_capacity = config.get('node_capacity', 2)
         store.enable_node_capacity(node_capacity)
