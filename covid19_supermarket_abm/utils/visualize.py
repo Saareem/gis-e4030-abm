@@ -98,7 +98,7 @@ def visualize_multiple_days(G, encounters, exposure_time, days):
     draw_nodes = nx.draw_networkx_nodes(G, pos, node_color=mean_encounters, cmap=plt.get_cmap('viridis'))
     draw_labels = nx.draw_networkx_labels(G, pos, font_color='w')
     cbar = plt.colorbar(draw_nodes)
-    draw_nodes.set_clim(0, 15)
+    #draw_nodes.set_clim(0, 14)
     cbar.set_label('N:o of encounters')
 
 
@@ -125,7 +125,7 @@ def visualize_multiple_days(G, encounters, exposure_time, days):
     draw_nodes = nx.draw_networkx_nodes(G, pos, node_color=mean_exposure_time, cmap=plt.get_cmap('inferno'))
     draw_labels = nx.draw_networkx_labels(G, pos, font_color='w')
     cbar = plt.colorbar(draw_nodes)
-    draw_nodes.set_clim(0, 3)
+    #draw_nodes.set_clim(0, 3)
     cbar.set_label('minutes')
 
     # transform fig1 to png and then to bytearray
@@ -139,7 +139,7 @@ def visualize_multiple_days(G, encounters, exposure_time, days):
     if not isinstance(image_data, str):
         image_data = image_data.decode()
 
-    # save to list
+    # add dataurl and save to list
     result_images.append('data:image/png;base64,' + image_data)
 
     return result_images
@@ -152,3 +152,32 @@ def fig2img(fig):
     buf.seek(0)
     img = Image.open(buf)
     return img
+
+def chart(series, days):
+    """
+    This is function for plotting the results of multiple-day simulations.
+    :param series:the pandas.series being plot
+    :param days: number of days simulated
+    :return: img: a base64 encoded string
+    """
+    # create a figure, visualize and add ticks and label
+    fig = plt.figure(figsize=[5, 4])
+    plot = series.plot()
+    ticks = list(range(1, days+1))
+    plt.xticks(series.index, ticks)
+    plt.xlabel('Days')
+
+    # convert to bytearray
+    img = fig2img(fig)
+    byte_arr = io.BytesIO()
+    img.save(byte_arr, format='png')
+    img = byte_arr.getvalue()
+
+    # fig1 to base64 encoding
+    image_data = base64.b64encode(img)
+    if not isinstance(image_data, str):
+        image_data = image_data.decode()
+
+    # return the base64 encoded string with the data url for html
+    image_data = 'data:image/png;base64,' + image_data
+    return image_data

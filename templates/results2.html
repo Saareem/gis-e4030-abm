@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Result page</title>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+
+    <h1 style="text-align: center">Given parameters</h1>
+    <!--Create table based on config dictionary-->
+    <table align="center">
+        {% for key, value in config2.items() %}
+           <tr>
+                <th> {{ key }} </th>
+                <td> {{ value }} </td>
+           </tr>
+        {% endfor %}
+    </table>
+
+    <h1 style="text-align: center">Results</h1>
+    <!--Create table of images based on result dictionary-->
+    <table align="center">
+        {% for key, value in result_dict.items() %}
+           <tr>
+                <th> {{ key }} </th>
+                <td>  <img src="{{ value }}"/>  </td>
+           </tr>
+        {% endfor %}
+    </table>
+
+    <h1 style="text-align: center">Result images</h1>
+    <!--Display all images from given directory-->
+    {% for image in result_images %}
+        <!-- <h1 style="text-align: center">{{ image }}</h1>  -->
+        <img src="{{ image }}"/>
+    {% endfor %}
+
+
+</div>
+{% endblock %}
