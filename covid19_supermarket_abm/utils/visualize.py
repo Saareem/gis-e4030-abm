@@ -166,6 +166,9 @@ def chart(series, days):
     ticks = list(range(1, days+1))
     plt.xticks(series.index, ticks)
     plt.xlabel('Days')
+    mean = 'Mean: ' + str(round(series.mean(),2))
+    ymin, ymax = plt.ylim()
+    plt.text(x=days-3, y=ymax, s=mean)
 
     # convert to bytearray
     img = fig2img(fig)
