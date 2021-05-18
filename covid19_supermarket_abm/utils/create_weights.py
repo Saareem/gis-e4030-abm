@@ -1,51 +1,65 @@
 import os
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
+import networkx as nx
 import random
 
 
 
-def create_weights(shelves_fp: str = None, shelves_to_nodes_fp: str = None, products_fp: str = None, random_weights: bool = False):
-    """Creates a weight dictionary for nodes
-    If no file paths are specified in shelves_fp, shelves_to_nodes_fp, or products_fp, defaults to kmarket data
-    If random_weights is set to True, random product weights are used instead of weights from products_fp"""
+def create_weights(G: nx.graph, data_dir: Optional[str] = None, weight_range: Optional[int] = 1, seed: Optional[int] = 0):
+    """
+    Creates a weight dictionary for nodes based on files in directory specified by data_dir
+    Directory needs to contain shelves.json with product field, products.csv listing different products and their
+    weights, and shelves_to_nodes.csv for linking shelves to nodes
+    If no data_dir is given, random weights are created at uniform within the weight range
+    # TODO Maybe another distribution of weights, such as normal distribution, would make more sense
+    :param data_dir: directory of the files
+    :param weight_range: range of integer values used for random weights, value of 1 means uniform weights
+    :param seed: if given a non-zero value, will be used as seed for random weights generation
+    """
 
-    data_dir = Path(__file__).parent.parent / 'kmarket_data'
-
-    # If no file path given load kmarket data
-    if shelves_fp is None:
-        shelves_fp = os.path.join(data_dir, f"shelves.json")
-    if shelves_to_nodes_fp is None:
-        shelves_to_nodes_fp = os.path.join(data_dir, f"shelves_to_nodes.csv")
-    if products_fp is None:
-        products_fp = os.path.join(data_dir, f"products")
+    def _random_weights():
+        '''
+        Creates random weights
+        '''
+        randomised_weights = {}
+        if seed != 0:
+            random.seed(seed)
+        for node in G.nodes:
+            randomised_weights[node] = random.randint(1, weight_range)
+        return randomised_weights
 
     weights = {}
-    shelves = pd.read_json(shelves_fp, orient="records")
 
-    # Create shelves_to_nodes -dictionary
-    shelves_to_nodes = {}
-    for i, row in pd.read_csv(shelves_to_nodes_fp).iterrows():
-        shelves_to_nodes[row["shelf"]] = row["node"]
-
-    # Create product weights dictionary from file or randomly
-    product_weights = {}
-    if not random_weights:
-        for i, row in pd.read_csv(products_fp).iterrows():
-            product_weights[row["product"]] = row["weight"]
+    # If data_dir is not given, create weights randomly
+    random_weights = False
+    if data_dir is None:
+        weights = _random_weights()
+    # If data_dir is given, create weights from the files
     else:
-        product_weights = random_product_weights(shelves["product"].unique())
+        shelves = pd.read_json(os.path.join(data_dir, f'shelves.json'), orient='records')
 
-    # Loop through every shelf and add their weight to corresponding node
-    for i, row in shelves.iterrows():
-        if row["fixtureType"] not in ["Checkout", "Entrance", "Exit"]:
-            weight = product_weights[row["product"]]
-            node = shelves_to_nodes[row["shelfCode"]]
-            if node in weights:
-                weights[node] = weights[node] + weight
-            else:
-                weights[node] = weight
+        # Create shelves_to_nodes -dictionary
+        shelves_to_nodes = {}
+        for i, row in pd.read_csv(os.path.join(data_dir, f'shelves_to_nodes.csv')).iterrows():
+            shelves_to_nodes[row['shelf']] = row['node']
+
+        # Create product weights dictionary from file
+        product_weights = {}
+        for i, row in pd.read_csv(os.path.join(data_dir, f'products.csv')).iterrows():
+                product_weights[row['product']] = row['weight']
+
+        # Loop through every shelf and add their weight to corresponding node
+        for i, row in shelves.iterrows():
+            if row['fixtureType'] not in ['Checkout', 'Entrance', 'Exit']:
+                weight = product_weights[row['product']]
+                node = shelves_to_nodes[row['shelfCode']]
+                if node in weights:
+                    weights[node] = weights[node] + weight
+                else:
+                    weights[node] = weight
 
     # Normalise weights
     weights_sum = sum(weights.values())
@@ -54,9 +68,3 @@ def create_weights(shelves_fp: str = None, shelves_to_nodes_fp: str = None, prod
     return weights
 
 
-def random_product_weights(products):
-    """Creates random product weights"""
-    product_weights = {}
-    for product in products:
-        product_weights[product] = 0.1 + 1.8*random.random()
-    return product_weights

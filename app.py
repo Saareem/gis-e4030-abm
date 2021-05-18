@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 from flask import Flask, render_template, request, redirect
 from covid19_supermarket_abm.utils.load_kmarket_data import load_kmarket_store_graph, load_example_paths
 from covid19_supermarket_abm.path_generators import get_path_generator
@@ -24,7 +27,12 @@ def index():
                   'duration_days': int(request.form['param4']),
                   'day': int(request.form['param5']),
                   'customers_together': float(request.form['param6']),
-                  'realtime': 'param7' in request.form}
+                  'random_weight_range': int(request.form['param7']),
+                  'random_weight_seed': int(request.form['param8']),
+                  'runtime': 'param9' in request.form,
+                  'path_update_interval': int(request.form['param10']),
+                  'avoidance_factor': float(request.form['param11']),
+                  'avoidance_k': float(request.form['param12'])}
 
         # Config2 for clean up parameters
         config2 = {'Rate at which customers arrive to the store (in customers per minute)': config['arrival_rate'],
@@ -33,28 +41,31 @@ def index():
                    'Number of days simulated': config['duration_days'],
                    'Starting week day': config['day'],
                    'Proportion of customers shopping together': config['customers_together'],
-                   'Realtime path generator actived': config['realtime']}
+                   'Random weights range': config['random_weight_range'],
+                   'Random weights seed': config['random_weight_seed'],
+                   'runtime path generator actived': config['runtime']}
 
         # Initialize model
+        data_dir = os.path.join(Path(__file__).parent, f'covid19_supermarket_abm\kmarket_data')
         zone_paths = load_example_paths()
         G = load_kmarket_store_graph()
         shortest_path_dict = get_all_shortest_path_dicts(G)
-        weights = create_weights(random_weights=True)
+        weights = create_weights(G=G, weight_range=config['random_weight_range'], seed=config['random_weight_seed'])
         item_nodes = [i for i in range(1, 106) if not i in [1, 2, 3, 23, 51, 52, 53, 54, 55]]
         path_gen_type = 'synthetic'
         path_generator_args = [1, 1, [1], [51, 52], [55], item_nodes, shortest_path_dict, weights]
 
         # Create paths based on user input
-        if config['realtime']:
-            path_gen_type = 'realtime'
+        if config['runtime']:
+            path_gen_type = 'runtime'
             del path_generator_args[-2]
             config['shortest_path_dict'] = shortest_path_dict
-            config['node_visibility'] = node_visibility(G)
+            config['node_visibility'] = node_visibility(G, data_dir=data_dir)
         path_generator_function, path_generator_args = get_path_generator(path_generation=path_gen_type,
                                                                           zone_paths=zone_paths,
                                                                           G=G,
                                                                           synthetic_path_generator_args=path_generator_args,
-                                                                          realtime_path_generator_args=path_generator_args)
+                                                                          runtime_path_generator_args=path_generator_args)
 
         # Simulate one day or several days based on user input
         if config['duration_days'] == 1:

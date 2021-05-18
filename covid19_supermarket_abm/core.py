@@ -15,7 +15,7 @@ class Store(object):
     def __init__(self, env: simpy.Environment, G: nx.Graph, max_customers_in_store: Optional[int] = None,
                  logging_enabled: bool = False,
                  logger: Optional[logging._loggerClass] = None, staff_start_nodes: Tuple[int] = (),
-                 realtime=False, realtime_parameters={}):
+                 runtime=False, runtime_parameters={}):
 
         """
         :param env: Simpy environment on which the simulation runs
@@ -23,25 +23,21 @@ class Store(object):
         :param logging_enabled: Toggle to True to log all simulation outputs
         :param max_customers_in_store: Maximum number of customers in the store
         :param staff_start_nodes: Contains the start nodes for the staff members. An empty list means, there's no staff.
-        :param avoidance_factor: With realtime path generation the weight of other customers in a path is calculated by
-        avoidance_factor*num_customers^avoidance_k  # TODO: E: Remove since this does not exist
-        :param avoidance_k: With realtime path generation the weight of other customers in a path is calculated by
-        avoidance_factor*num_customers^avoidance_k  # TODO: E: Remove since this does not exist
-        :param node_visibility: Dictionary where keys are nodes and values are nodes visible from key node. Used for
-        realtime path generation.  # TODO: E: Remove since this does not exist
+        :param runtime: Whether runtime path generation is used or not
+        :param runtime_parameters: A dictionary of parameters used for runtime path generation
         """
         self.n_staff = len(staff_start_nodes)
         # path generation is used
-        self.realtime = realtime
-        if self.realtime:
-            self.path_update_freq = realtime_parameters['path_update_freq']  # How often the agents recalculate
-            # their paths when realtime
+        self.runtime = runtime
+        if self.runtime:
+            self.path_update_interval = runtime_parameters['path_update_interval']  # How often the agents recalculate
+            # their paths when runtime
             # path generation is used
-            self.avoidance_factor = realtime_parameters['avoidance_factor']
-            self.avoidance_k = realtime_parameters['avoidance_k']
-            self.node_visibility = realtime_parameters['node_visibility']
-            self.shortest_path_dict = realtime_parameters['shortest_path_dict']
-        self.baskets = {}  # The nodes that the customers want to visit. Used for realtime path generation
+            self.avoidance_factor = runtime_parameters['avoidance_factor']
+            self.avoidance_k = runtime_parameters['avoidance_k']
+            self.node_visibility = runtime_parameters['node_visibility']
+            self.shortest_path_dict = runtime_parameters['shortest_path_dict']
+        self.baskets = {}  # The nodes that the customers want to visit. Used for runtime path generation
         self.G = G.copy()
         self.agents_at_nodes = {node: [] for node in self.G}
         self.infected_agents_at_nodes = {node: [] for node in self.G}
@@ -297,31 +293,33 @@ class Store(object):
 
     def update_path(self, start: int, agent_id: int):
         """
-        Updates path for an agent when realtime path generation is used.
+        Updates path for an agent when current path has been depleted.
 
         :param start: Current location of the agent
         :param agent_id: ID of the agent
         """
 
-        def _weight_function(u, v, e):  # TODO E: What's up with not using u and e?
+        def _weight_function(u, v, e):
             """
-            Function used to calculate edge weights in the graph
+            Function used in A* algorithm to calculate edge weights in the graph
             """
             agents_in_node = self.node_visibility[(start, v)] * len(self.agents_at_nodes[v])
             return 1 + self.avoidance_factor * agents_in_node ** self.avoidance_k
 
         def _heuristic_function(source, target):
-            # TODO At the moment shortest_path_dict needs to be in config, should be fixed
+            '''
+            Function used in A* algorithm as the heuristic
+            '''
             return len(self.shortest_path_dict[source][target][0])
 
         shortest_path = [start]
-        shortest_len = float("inf")  # TODO E: Not in use
         not_visited = self.baskets[agent_id]
 
+        # If there are nodes left that the customer wants to visit
         if len(not_visited) > 0:
             path = nx.algorithms.astar_path(self.G, start, not_visited[0], heuristic=_heuristic_function,
                                             weight=_weight_function)
-            N = min(self.path_update_freq, len(path))
+            N = min(self.path_update_interval, len(path))
             shortest_path = path[:N]
 
         # Duplicate nodes in basket so the agent stays in them to buy something
@@ -340,16 +338,17 @@ def customer(env: simpy.Environment, customer_id: int, infected: bool, store: St
     :param customer_id: ID of customer
     :param infected: True if infected
     :param store: Store object
-    :param path_orig: Assigned customer shopping path (for non-realtime path generation) or item basket (realtime)
+    :param path_orig: Assigned customer shopping path (for non-runtime path generation) or item basket (runtime)
     :param traversal_time: Mean time before moving to the next node in path (also called waiting time)
     :param thres: Threshold length of queue outside. If queue exceeds threshold, customer does not enter
     the queue and leaves.
     """
 
+    # Initialize path according to whether runtime path generation is used
     path = []
-    if store.realtime:
+    if store.runtime:
         # Agent starts at entrance node
-        path = [path_orig[1], path_orig[1]]
+        path = [path_orig[0], path_orig[0]]
     else:
         path = path_orig
 
@@ -376,7 +375,7 @@ def customer(env: simpy.Environment, customer_id: int, infected: bool, store: St
                 f'Customer {customer_id} enters the shop after waiting {wait :.2f} min with shopping path {path}.')
             start_node = path[0]
             basket = []
-            if store.realtime:
+            if store.runtime:
                 basket = path_orig[1:]
             store.add_agent(customer_id, start_node, infected, wait, basket=basket)
             while len(path) > 1:
@@ -386,6 +385,7 @@ def customer(env: simpy.Environment, customer_id: int, infected: bool, store: St
                     while not has_moved:  # If it hasn't moved, wait a bit
                         yield env.timeout(random.expovariate(1 / traversal_time))
                         has_moved = store.move_agent(customer_id, infected, start, end)
+                # Update customers path
                 path = store.update_path(path[-1], customer_id)
             yield env.timeout(random.expovariate(1 / traversal_time))  # wait before leaving the store
             store.remove_agent(customer_id, path[-1], infected)
@@ -436,17 +436,17 @@ def two_customers(env: simpy.Environment, customer_id: int, infected: bool, stor
     :param customer_id: ID of customer
     :param infected: True if infected
     :param store: Store object
-    :param path_orig: Assigned initial customer shopping path
+    :param path_orig: Assigned customer shopping path (for non-runtime path generation) or item basket (runtime)
     :param traversal_time: Mean time before moving to the next node in path (also called waiting time)
     :param thres: Threshold length of queue outside. If queue exceeds threshold, customer does not enter
     the queue and leaves.
     """
 
-    realtime = False
+    runtime = False
     path = []
-    if store.realtime:
+    if store.runtime:
         # Agent starts at entrance node
-        path = [path_orig[1], path_orig[1]]
+        path = [path_orig[0], path_orig[0]]
     else:
         path = path_orig
 
@@ -474,7 +474,7 @@ def two_customers(env: simpy.Environment, customer_id: int, infected: bool, stor
                       f'{wait :.2f} min with shopping path {path}.')
             start_node = path[0]
             basket = []
-            if realtime:
+            if runtime:
                 basket = path_orig[1:]
             store.add_agent(customer_id, start_node, infected, wait, basket=basket)
             store.add_agent(customer_id + 1, start_node, infected, wait, basket=basket)
@@ -510,7 +510,7 @@ def _agent_arrivals(env: simpy.Environment, store: Store, path_generator, config
     infection_proportion = config['infection_proportion']
     traversal_time = config['traversal_time']
     if 'customers_together' not in config:
-        config['customers_together'] = 1e-12  # TODO: Eemeli: Consider fixing this in other way.
+        config['customers_together'] = 0
     agent_id = 0
 
     store.open_store()
