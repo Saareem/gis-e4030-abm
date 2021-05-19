@@ -15,7 +15,6 @@ data_dir = Path(__file__).parent.parent / 'kmarket_data'
 zone_paths = load_example_paths()
 G = load_kmarket_store_graph()
 shortest_path_dict = get_all_shortest_path_dicts(G)
-node_visibility = node_visibility(G, data_dir)
 
 # Set parameters
 config = {'arrival_rate': 2.55,
@@ -24,7 +23,6 @@ config = {'arrival_rate': 2.55,
           "logging_enabled": True,
           'day': 6, # 0 = Monday, ..., 6 = Sunday
           'runtime': True,
-          'customers_together': 0.2,  # Proportion between [0,1]
           'path_update_interval': 5,
           'shortest_path_dict': shortest_path_dict,
           'avoidance_factor': 2,
@@ -35,7 +33,7 @@ config = {'arrival_rate': 2.55,
 # Create a path generator which feeds our model with customer paths
 weights = create_weights(G=G, data_dir=None, weight_range=10, seed=10)
 item_nodes = [i for i in range(1, 106) if not i in [1, 2, 3, 23, 51, 52, 53, 54, 55]]
-synthetic_path_generator_args = [1,
+path_generator_args = [1,
                                  1,
                                  [1],
                                  [51, 52],
@@ -43,24 +41,17 @@ synthetic_path_generator_args = [1,
                                  item_nodes,
                                  shortest_path_dict,
                                  weights]
-runtime_path_generator_args = [1,
-                                 1,
-                                 [1],
-                                 [51, 52],
-                                 [55],
-                                 item_nodes,
-                                 weights]
-path_gen_type = "runtime"
-path_generator_function1, path_generator_args1 = get_path_generator(path_generation = 'synthetic',
-                                                                  synthetic_path_generator_args=synthetic_path_generator_args,
-                                                                  runtime_path_generator_args=runtime_path_generator_args,
-                                                                  zone_paths = zone_paths,
-                                                                  G=G,
-                                                                  )
 
-path_generator_function2, path_generator_args2 = get_path_generator(path_generation = 'runtime',
-                                                                  synthetic_path_generator_args=synthetic_path_generator_args,
-                                                                  runtime_path_generator_args=runtime_path_generator_args,
+path_gen_type = 'synthetic'
+if config['runtime']:
+    path_gen_type = 'runtime'
+    del path_generator_args[-2]
+    config['shortest_path_dict'] = shortest_path_dict
+    config['node_visibility'] = node_visibility(G, data_dir=data_dir)
+
+path_generator_function, path_generator_args = get_path_generator(path_generation = path_gen_type,
+                                                                  synthetic_path_generator_args=path_generator_args,
+                                                                  runtime_path_generator_args=path_generator_args,
                                                                   zone_paths = zone_paths,
                                                                   G=G,
                                                                   )
@@ -68,11 +59,6 @@ path_generator_function2, path_generator_args2 = get_path_generator(path_generat
 # Simulate a day and store results in results
 #results_dict = simulate_one_day(config, G, path_generator_function1, path_generator_args1)
 #print(results_dict["mean_shopping_time"])
-a, b, exposure_times1 = simulate_several_days(config, G, path_generator_function2, path_generator_args2, num_iterations=2, use_parallel=False)
+a, b, exposure_times = simulate_several_days(config, G, path_generator_function, path_generator_args, num_iterations=2, use_parallel=False)
 #print(results_dict1["df_exposure_time_per_node"].mean(axis=1))
-print(exposure_times1.mean().mean())
-
-config['avoidance_factor'] = 0
-a, b, exposure_times2 = simulate_several_days(config, G, path_generator_function2, path_generator_args2, num_iterations=2, use_parallel=False)
-
-print(exposure_times2.mean().mean())
+print(exposure_times.mean().mean())
