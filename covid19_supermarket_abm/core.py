@@ -39,6 +39,8 @@ class Store(object):
             self.shortest_path_dict = runtime_parameters['shortest_path_dict']
         self.baskets = {}  # The nodes that the customers want to visit. Used for runtime path generation
         self.G = G.copy()
+        if self.n_staff > 0:
+            self.staff_G = self.G.to_undirected()
         self.agents_at_nodes = {node: [] for node in self.G}
         self.infected_agents_at_nodes = {node: [] for node in self.G}
         self.agents = []
@@ -131,18 +133,18 @@ class Store(object):
             raise ValueError(f'{start} -> {end} is not a valid transition in the graph!')
         return has_moved
 
-    def check_valid_move(self, start: int, end: int, oneway: bool = False):
+    def check_valid_move(self, start: int, end: int, two_way: bool = False):
         """
         Checks if the move from start to end is a valid edge in the store graph.
         @param start: start node
         @param end: end node
-        @param oneway: flag for whether validity is checked for both directions
+        @param two_way: flag for whether validity is checked for both directions
         @return: the validity to traverse the edge from start to end (and back, if oneway=True)
         """
         validity = False
         if self.G.has_edge(start, end) or start == end:
             validity = True
-            if oneway:
+            if two_way:
                 validity = validity and self.G.has_edge(end, start)
         return validity
 
@@ -409,13 +411,15 @@ def staff_member(env: simpy.Environment, staff_id: int, infected: bool, store: S
     yield env.timeout(1)
     while store.is_open or store.number_customers_in_store() > 0:
         start = path[-1]
-        nbrs = store.G.neighbors(start)
+        nbrs = store.staff_G.neighbors(start)
         v_nbrs = []  # Neighbors where the staff member can move
         for n in nbrs:
             # Due to peculiarity of Python, this will append only valid nodes, as True and 1 => 1
             v_nbrs.append(store.check_valid_move(start, n, True) and n)
         # Select end node from both-ways-passable nodes. I.e. nodes where the staff member can go and return.
         end = random.choice(v_nbrs)
+        if not end:  # Just make sure that if there's no neighbor, the simulation does not crash. This shouldn't happen.
+            end = start
         # Set the next node which is used by move_agent function to actually move the agent (staff member)
         store.agents_next_zone[staff_id] = end
         has_moved = False
@@ -509,6 +513,7 @@ def _agent_arrivals(env: simpy.Environment, store: Store, path_generator, config
     arrival_rate = config['arrival_rate'] * popular_hours[hour_nro] / popular_hours.mean()
     infection_proportion = config['infection_proportion']
     traversal_time = config['traversal_time']
+    config['staff_traversal_time'] = config.get('staff_traversal_time', traversal_time)
     if 'customers_together' not in config:
         config['customers_together'] = 0
     agent_id = 0
@@ -516,7 +521,7 @@ def _agent_arrivals(env: simpy.Environment, store: Store, path_generator, config
     store.open_store()
     for i in range(0, store.n_staff):
         infected = np.random.rand() < infection_proportion
-        env.process(staff_member(env, i, infected, store, traversal_time))
+        env.process(staff_member(env, i, infected, store, config['staff_traversal_time']))
         agent_id += 1
     yield env.timeout(random.expovariate(arrival_rate))
     while env.now < num_hours_open * 60:
