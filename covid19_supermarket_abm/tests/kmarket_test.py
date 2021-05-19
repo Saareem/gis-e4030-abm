@@ -15,6 +15,7 @@ data_dir = Path(__file__).parent.parent / 'kmarket_data'
 zone_paths = load_example_paths()
 G = load_kmarket_store_graph()
 shortest_path_dict = get_all_shortest_path_dicts(G)
+node_visibility = node_visibility(G, data_dir)
 
 # Set parameters
 config = {'arrival_rate': 2.55,
@@ -23,12 +24,14 @@ config = {'arrival_rate': 2.55,
           "logging_enabled": True,
           'day': 6, # 0 = Monday, ..., 6 = Sunday
           'runtime': True,
+          'customers_together': 0.2,  # Proportion between [0,1]
           'path_update_interval': 5,
           'shortest_path_dict': shortest_path_dict,
           'avoidance_factor': 2,
           'avoidance_k': 1.5,
           'node_visibility': node_visibility,
-          'staff_start_nodes': (27, 27)}  # Start nodes for the staff
+          'staff_start_nodes': (27, 27),  # Start nodes for the staff
+          'staff_traversal_time': 1}
 
 # Create a path generator which feeds our model with customer paths
 weights = create_weights(G=G, data_dir=None, weight_range=10, seed=10)
@@ -57,7 +60,7 @@ path_generator_function, path_generator_args = get_path_generator(path_generatio
                                                                   )
 
 # Simulate a day and store results in results
-#results_dict = simulate_one_day(config, G, path_generator_function1, path_generator_args1)
+# results_dict = simulate_one_day(config, G, path_generator_function, path_generator_args)
 #print(results_dict["mean_shopping_time"])
 a, b, exposure_times = simulate_several_days(config, G, path_generator_function, path_generator_args, num_iterations=2, use_parallel=False)
 #print(results_dict1["df_exposure_time_per_node"].mean(axis=1))

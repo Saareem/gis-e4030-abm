@@ -393,7 +393,7 @@ def customer(env: simpy.Environment, customer_id: int, infected: bool, store: St
 
 def staff_member(env: simpy.Environment, staff_id: int, infected: bool, store: Store, traversal_time: float):
     """
-    Simpy process simulating a member of staff
+    Simpy process simulating a member of staff which moves randomly in the store while it's open.
 
     :param env: Simpy environment on which the simulation runs
     :param staff_id: ID of staff member
