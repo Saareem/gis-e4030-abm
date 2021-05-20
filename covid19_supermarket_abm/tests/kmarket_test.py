@@ -15,7 +15,7 @@ data_dir = Path(__file__).parent.parent / 'kmarket_data'
 zone_paths = load_example_paths()
 G = load_kmarket_store_graph()
 shortest_path_dict = get_all_shortest_path_dicts(G)
-node_visibility = node_visibility(G, data_dir)
+node_visib = node_visibility(G, data_dir)
 
 # Set parameters
 config = {'arrival_rate': 2.55,
@@ -29,7 +29,7 @@ config = {'arrival_rate': 2.55,
           'shortest_path_dict': shortest_path_dict,
           'avoidance_factor': 2,
           'avoidance_k': 1.5,
-          'node_visibility': node_visibility,
+          'node_visibility': node_visib,
           'staff_start_nodes': (27, 27),  # Start nodes for the staff
           'staff_traversal_time': 1}
 
