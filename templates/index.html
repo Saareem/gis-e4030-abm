@@ -10,44 +10,58 @@
 
     <div class="form">
         <form action="/" method="POST">
-            <label for="param1">Arrival rate:</label>
-            <input type="number" name="param1" id="param1" value="2.55" step="0.05" min="0" max="5" required="required" placeholder="Set a value for the arrival rate"><br>
+            <fieldset>
+                <legend>General parameters:</legend>
+                <label for="param1">Arrival rate:</label>
+                <input type="number" name="param1" id="param1" value="2.55" step="0.05" min="0" max="5" required="required" placeholder="Set a value for the arrival rate"><br>
 
-            <label for="param2">Traversal time:</label>
-            <input type="number" name="param2" id="param2" value="0.2" step="0.1" min="0" max="0.5" required="required"><br>
+                <label for="param2">Traversal time:</label>
+                <input type="number" name="param2" id="param2" value="0.2" step="0.1" min="0" max="0.5" required="required"><br>
 
-            <label for="param3">Infection proportion:</label>
-            <input type="number" name="param3" id="param3" value="0.001" step="0.001" min="0" max="1" required="required"><br>
+                <label for="param3">Infection proportion:</label>
+                <input type="number" name="param3" id="param3" value="0.001" step="0.001" min="0" max="1" required="required"><br>
 
-            <label for="param4">Simulation duration (days)</label>
-            <input type="number" name="param4" id="param4" value="1" step="1" min="1" max="30" required="required"><br>
+                <label for="param4">Simulation duration (days)</label>
+                <input type="number" name="param4" id="param4" value="1" step="1" min="1" max="30" required="required"><br>
 
-            <label for="param5">Week day (0= monday, 6=sunday):</label>
-            <input type="number" name="param5" id="param5" min="0" max="6" value="0" step="1" required="required"><br>
+                <label for="param5">Week day (0= monday, 6=sunday):</label>
+                <input type="number" name="param5" id="param5" min="0" max="6" value="0" step="1" required="required"><br>
 
-            <label for="param6">Customers together:</label>
-            <input type="number" name="param6" id="param6" value="0" min="0" max="1" step="0.1" required="required"><br>
+                <label for="param6">Customers together:</label>
+                <input type="number" name="param6" id="param6" value="0" min="0" max="1" step="0.1" required="required"><br>
+            </fieldset>
 
-            <label for="param7">Random weights range:</label>
-            <input type="number" name="param7" id="param7" value="1" min="1" max="1000" step="1" required="required"><br>
+            <fieldset>
+                <legend>Weight parameters:</legend>
+                <label for="param7">Random weights range:</label>
+                <input type="number" name="param7" id="param7" value="1" min="1" max="1000" step="1" required="required"><br>
 
-            <label for="param8">Random weights seed:</label>
-            <input type="number" name="param8" id="param8" value="0" min="0" max="65535" step="1" required="required"><br>
+                <label for="param8">Random weights seed:</label>
+                <input type="number" name="param8" id="param8" value="0" min="0" max="65535" step="1" required="required"><br>
+            </fieldset>
 
-            <label for="param9">runtime path generation</label>
-            <input type="checkbox" name="param9" id="param9" checked ><br>
+            <fieldset>
+                <legend>Runtime parameters:</legend>
+                <label for="param9">runtime path generation</label>
+                <input type="checkbox" name="param9" id="param9" checked ><br>
 
-            <label for="param10">Path update interval:</label>
-            <input type="number" name="param10" id="param10" value="5" min="3" max="20" step="1" required="required"><br>
+                <label for="param10">Path update interval:</label>
+                <input type="number" name="param10" id="param10" value="5" min="3" max="20" step="1" required="required"><br>
 
-            <label for="param11">Avoidance factor:</label>
-            <input type="number" name="param11" id="param11" value="1" min="0" max="100" step="0.1" required="required"><br>
+                <label for="param11">Avoidance factor:</label>
+                <input type="number" name="param11" id="param11" value="1" min="0" max="100" step="0.1" required="required"><br>
 
-            <label for="param12">Avoidance exponent:</label>
-            <input type="number" name="param12" id="param12" value="1" min="0" max="5" step="0.1" required="required"><br>
+                <label for="param12">Avoidance exponent:</label>
+                <input type="number" name="param12" id="param12" value="1" min="0" max="5" step="0.1" required="required"><br>
+            </fieldset>
+            <fieldset>
+                <legend>Staff parameters:</legend>
+                <label for="param13">Number of staff members:</label>
+                <input type="number" name="param13" id="param13" value="0" min="0" max="6" step="1" required="required"><br>
 
-
-
+                <label for="param14">Staff traversal time:</label>
+                <input type="number" name="param14" id="param14" value="0.6" min="0.2" max="5" step="0.1" required="required"><br>
+            </fieldset>
             <input type="submit" value="RUN">
         </form>
     </div><br>
