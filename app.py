@@ -12,7 +12,7 @@ from covid19_supermarket_abm.utils.visualize import visualize_single_day, visual
 
 
 app = Flask(__name__)
-
+staff_start_node = 27
 
 # Default view. Based on index.html file
 @app.route('/', methods=['GET', 'POST'])
@@ -32,7 +32,9 @@ def index():
                   'runtime': 'param9' in request.form,
                   'path_update_interval': int(request.form['param10']),
                   'avoidance_factor': float(request.form['param11']),
-                  'avoidance_k': float(request.form['param12'])}
+                  'avoidance_k': float(request.form['param12']),
+                  'staff_start_nodes': tuple([staff_start_node for i in range(0, int(request.form['param13']))]),
+                  'staff_traversal_time': float(request.form['param14'])}
 
         # Config2 for clean up parameters
         config2 = {'Rate at which customers arrive to the store (in customers per minute)': config['arrival_rate'],
@@ -43,7 +45,9 @@ def index():
                    'Proportion of customers shopping together': config['customers_together'],
                    'Random weights range': config['random_weight_range'],
                    'Random weights seed': config['random_weight_seed'],
-                   'runtime path generator actived': config['runtime']}
+                   'runtime path generator actived': config['runtime'],
+                   'Start nodes for the staff': config['staff_start_nodes'],
+                   'Mean wait time at each node for staff members (in minutes)': config['staff_traversal_time']}
 
         # Initialize model
         data_dir = os.path.join(Path(__file__).parent, f'covid19_supermarket_abm\kmarket_data')
