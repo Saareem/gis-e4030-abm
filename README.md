@@ -137,7 +137,14 @@ Key | Description
  `duration_days` | The number of days in simulation. If more than `1`, uses simulate_several_days - function. (Default: `1`)
  `day` | Starting week day. Relevant if popular times are defined and user wants to simulate only one day. (Default: `0` i.e. monday)
  `customers_together` | Proportion of customers shopping together. Number between 0 and 1. (Default: `0`)
- `realtime` | Set to `true` to allow customers to avoid each other by using real time path generators. (Default: `False`) WARNING: This will make code 3-4 time slower. 
+ `random_weight_range` | Something
+ `random_weight_seed` | Something
+ `runtime` | Set to `true` to allow customers to avoid each other by using real time path generators. (Default: `False`) WARNING: This will make code 3-4 time slower.
+ `path_update_interval` | Defines how often (in minutes) the agents recalculate their paths when runtime path generation is used
+ `avoidance_factor` | Configures how hard the agents will try to avoid each other when calculating the route
+ `avoidance_k` | Something
+ `staff_start_nodes` | A tuple of the start positions of the staff members in the store graph. For example `(1, 24, 34)` signifies that the staff members will start at nodes 1, 24 and 34 according to the order they are added into the store. 
+ `staff_traversal_time` | Mean wait time at each node (in minutes) for the staff members. If none is supplied, the general `traversal_time` is used. 
 
 
  ## Store network
