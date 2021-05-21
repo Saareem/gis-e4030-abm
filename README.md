@@ -30,6 +30,8 @@ To get going:
 > pip install Shapely
 ```
 
+Alternatively, you can use run ```pip install -r C:\WorkSpace\requirements.txt``` in the virtual environment to install all Python packages written in the requirements.txt file.
+
 # Example
 
 If you only want to run the application, you can use web application by running `app.py` from the repository root on a local computer. This will start a development server instance on localhost, i.e. [http://127.0.0.1:5000](http://127.0.0.1:5000) by default but the location might vary based on your system configuration. 
