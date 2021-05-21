@@ -21,7 +21,7 @@ Differences between Fabian Ying's original and ours forked repository:
 
 # Installation
 
-Our package relies mainly on packages [covid-19-supermarket_abm](https://pypi.org/project/covid19-supermarket-abm/) and [SimPy](https://simpy.readthedocs.io/en/latest/), which requires Python >= 3.6. Additionally, Flask, Werkzeug and Shapely libraries are used. The code has only been tested on Windows but technically it should also work on other operating systems if the Python version and package version requirements under `requirements.txt` can be satisfied.
+Our package relies mainly on packages [covid-19-supermarket_abm](https://pypi.org/project/covid19-supermarket-abm/) and [SimPy](https://simpy.readthedocs.io/en/latest/), which requires Python >= 3.6. Additionally, Flask, Werkzeug and Shapely libraries are used. The code has only been tested on Windows but technically it should also work on other operating systems if the Python version and package version requirements under [`requirements.txt`](https://github.com/Saareem/gis-e4030-abm/blob/main/requirements.txt) can be satisfied.
 To get going:
 
 Recommended: Set up virtualenv. Skip if you know what you are doing and know possible consequences.
