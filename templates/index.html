@@ -56,7 +56,7 @@
                 <p>
                     Weight parameters can be used to give random weights to the store shelves in the simulation. This
                     affects how popular the items in those shelves are, i.e. how often those shelves are visited by the
-                    customers.
+                    customers. Weight range of <b>1</b> means uniform weights.
                 </p>
             </fieldset>
 
@@ -82,8 +82,9 @@
                     By enabling the runtime path generation, the agents (except staff members) will try avoiding each other
                     and constantly recalculate their path according to the items they want to buy, their locations and
                     visibility of other agents in their neighborhood. <b>Path update interval</b> will adjust, how often
-                    the path is recalculated, <b>avoidance factor</b> controls how much the agents will avoid each other
-                    and <b>avoidance exponent</b> controls ... <!-- TODO: Iikka should complete this explanation -->
+                    the path is recalculated, <b>avoidance factor</b> and <b>avoidance exponent</b> control how much the agents
+                    avoid each other. Edge weights are calculated by <b>avoidance factor * n ^ avoidance exponent</b>, where
+                    <b>n</b> is the number of customers in a node (if visible).
                 </p>
             </fieldset>
             <fieldset>
