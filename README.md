@@ -3,13 +3,13 @@ This code accompanies the paper ["Modelling COVID-19 transmission in supermarket
 
 Differences between Fabian Ying's original and ours forked repository:
 
-(1) Web application (`app.py`)
+(1) [Web application (`app.py`)](https://github.com/Saareem/gis-e4030-abm#web-application)
 
 (2) Real-time path generator
 
 (3) Some customers might arrive in pairs
 
-(4) Staff is included
+(4) [Staff is included](https://github.com/Saareem/gis-e4030-abm#concept-of-general-agent-and-inclusion-of-staff-members)
 
 (5) In addition of numerical result, also visualizations can be displayed
 
@@ -67,7 +67,7 @@ print(list(results_dict.keys()))
 ```
 Output:
 ```python
-['num_cust', 'num_S', 'num_I', 'total_exposure_time', 'num_contacts_per_cust', 'num_cust_w_contact', 'mean_num_cust_in_store', 'max_num_cust_in_store', 'num_contacts', 'shopping_times', 'mean_shopping_time', 'num_waiting_people', 'mean_waiting_time', 'store_open_length', 'df_num_encounters_per_node', 'df_exposure_time_per_node', 'total_time_crowded', 'exposure_times', 'logs', 'runtime']
+['num_agents', 'num_S', 'num_I', 'total_exposure_time', 'num_contacts_per_agent', 'num_agents_w_contact', 'mean_num_cust_in_store', 'max_num_cust_in_store', 'num_contacts', 'shopping_times', 'mean_shopping_time', 'num_waiting_people', 'mean_waiting_time', 'store_open_length', 'df_num_encounters_per_node', 'df_exposure_time_per_node', 'total_time_crowded', 'exposure_times', 'logs', 'runtime']
 ```
 
 See below for their description.
@@ -289,7 +289,7 @@ path_generator_function, path_generator_args = get_path_generator(path_generatio
 This path generator allows customers to avoid each other in store. If some node is too conqested, customer will find a new path. As you can see from the name, this generator works in real time, which makes code 3-4 times slower.  
 
 # Concept of general agent and inclusion of staff members
-Contrary to the original program by Young, the `core.py` was reworked to include store staff members in the simulation. To enable this in least confusing way we could come up with, most of the methods that used to handle only customers were refactored to handle general (moving) agents. The methods handling agents should allow adding different kind of agents although some coding work in `core.py` is definitely required. Additionally, the method names and some attribute names have been changed correspondingly to decrease confusion. 
+Contrary to the original program by Young, the `core.py` was reworked to include store staff members in the simulation. To enable this in least confusing way we could come up with, most of the methods that used to handle only customers were refactored to handle general (moving) agents. The methods handling agents should allow adding different kind of agents although some coding work in `core.py` is definitely required. Additionally, the method names and some attribute names have been changed correspondingly to decrease confusion. **Inclusion of staff member will have some implications, how the results of the simulation should be interpreted, since the staff will be included in the number of susceptible, infected and total agents.** In those cases, what used to be number of customers is now the sum of customers and staff members.
 
 ## Staff member 
 The staff member is an agent that starts its shift when the store opens and quits when it closes. This is not really realistic, but we decided it's not worth the effort to implement any kind of specific arrival and exit times, i.e. shifts as the number of staff is generally very small compared to the number of daily customers. 
@@ -297,11 +297,11 @@ The staff member is an agent that starts its shift when the store opens and quit
 The staff members start at a specified node in the store graph and move by selecting randomly a neighboring node from an **undirected copy** of the original store graph. An undirected graph is used as it was decided that the staff should be able to traverse edges to both directions. Partly this is because staff is allowed to move in the store more freely but partly also because this prevents the staff member getting trapped in a node of no return. The staff **will ignore the runtime path generation and move the same way irrespective of the path generation method**, i.e. they will not try avoiding other agents or calculating better path.
 
 ## The logic of separating different kinds of agents
-As the original version didn't use object-oriented approach, we decided not to change that. However, to allow the program to handle interactions of different kinds of agents including the staff members, the `id` number of the agent is used to distinguish between them. In current implementation, the staff members will populate the first `n` elements of the agent list where `n` is the amount of the staff members. Agents `id` number of which is equal or above `n` will be treated as customers in the simulation.   
+As the original version didn't use object-oriented approach, we decided not to change that. However, to allow the program to handle interactions of different kinds of agents including the staff members, the `agent_id` number of the agent is used to distinguish between them. In current implementation, the staff members will populate the first `n` elements of the agent list where `n` is the amount of the staff members. Agents `id` number of which is equal or above `n` will be treated as customers in the simulation.   
 
 Essentially if `n = 2` the agent list will be:
 
-`id` | `agent_type`
+`agent_id` | `agent_type`
 -----|------------
 0    | "staff member"
 1    | "staff member"
