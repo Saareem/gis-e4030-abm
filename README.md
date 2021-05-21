@@ -285,8 +285,9 @@ path_generator_function, path_generator_args = get_path_generator(path_generatio
 ### Runtime path generator
 
 Runtime path generator creates node sequences using steps 1-4 from synthetic path generation. The sequences aren't converted to full paths using step 5.
-During simulation run, the customers update their paths using A* algorithm. Uses parameters given in `config`.
+During simulation run, the customers update their paths using A* algorithm.
 Runtime path generation with default parameters is about 2-4 slower than synthetic path generation, but the performance is dramatically infleunced by the parameters and probably by the network as well.
+Runtime path generation uses following parameters given in `config`:
 
  Runtime parameter key | Description
 ------------ | -------------
