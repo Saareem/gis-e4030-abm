@@ -128,7 +128,7 @@ def plot_shelves(shelves, ax: Optional[plt.axes] = None, color: str = '#C0C0C0',
     return ax
 
 
-def load_popular_hours():
+def load_popular_hours(num_of_hours):
     # Get popular hours of the market from google data // Alpo
     try:
         kmarket_hours = pd.read_csv(os.path.join(data_dir, f'kmarket_popular_hours.txt'), sep='\t', header=None)
@@ -136,4 +136,4 @@ def load_popular_hours():
     except FileNotFoundError:
         print("No popular hours file. Default value used.")
         # TODO: Eemeli: Should maybe use the supplied number of hours if it's available in config.
-        return np.ones((16, 7), dtype=int)
+        return np.ones((num_of_hours, 7), dtype=int)
