@@ -17,7 +17,7 @@ def simulate_one_day(config: dict, G: nx.Graph, path_generator_function, path_ge
     start = timeit.default_timer()
     if 'day' not in config:
         config['day'] = 0
-    popular_hours = load_popular_hours().iloc[:, config['day']]
+    popular_hours = load_popular_hours(config.get('num_hours_open', 14)).iloc[:, config['day']]
     num_hours_open = popular_hours.count()
     logging_enabled = config.get('logging_enabled', False)
     raise_test_error = config.get('raise_test_error', False)  # for debugging purposes

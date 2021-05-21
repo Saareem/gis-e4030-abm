@@ -135,5 +135,4 @@ def load_popular_hours(num_of_hours):
         return kmarket_hours / 100
     except FileNotFoundError:
         print("No popular hours file. Default value used.")
-        # TODO: Eemeli: Should maybe use the supplied number of hours if it's available in config.
-        return np.ones((num_of_hours, 7), dtype=int)
+        return pd.DataFrame(np.ones((num_of_hours, 7), dtype=int))
