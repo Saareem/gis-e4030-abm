@@ -12,6 +12,7 @@ from covid19_supermarket_abm.utils.visualize import visualize_single_day, visual
 
 
 app = Flask(__name__)
+staff_start_node = 27  # Change the staff start node here or expose possibility for the user to change the node
 
 
 # Default view. Based on index.html file
@@ -32,18 +33,22 @@ def index():
                   'runtime': 'param9' in request.form,
                   'path_update_interval': int(request.form['param10']),
                   'avoidance_factor': float(request.form['param11']),
-                  'avoidance_k': float(request.form['param12'])}
+                  'avoidance_k': float(request.form['param12']),
+                  'staff_start_nodes': tuple([staff_start_node for i in range(0, int(request.form['param13']))]),
+                  'staff_traversal_time': float(request.form['param14'])}
 
         # Config2 for clean up parameters
         config2 = {'Rate at which customers arrive to the store (in customers per minute)': config['arrival_rate'],
                    'Mean wait time at each node (in minutes)': config['traversal_time'],
-                   'Proportion of customers that are infected': config['infection_proportion'],
+                   'Proportion of agents that are infected': config['infection_proportion'],
                    'Number of days simulated': config['duration_days'],
                    'Starting week day': config['day'],
                    'Proportion of customers shopping together': config['customers_together'],
                    'Random weights range': config['random_weight_range'],
                    'Random weights seed': config['random_weight_seed'],
-                   'runtime path generator actived': config['runtime']}
+                   'Runtime path generator activated': config['runtime'],
+                   'Start nodes for the staff members': config['staff_start_nodes'],
+                   'Mean wait time at each node for staff members (in minutes)': config['staff_traversal_time']}
 
         # Initialize model
         data_dir = os.path.join(Path(__file__).parent, f'covid19_supermarket_abm\kmarket_data')
@@ -74,17 +79,17 @@ def index():
 
             # Change dict keys and select only relevant variables
             results_dict = {
-                'Total number of customers': init_results_dict['num_cust'],
-                'Number of susceptible customers': init_results_dict['num_S'],
-                'Number of infected customers': init_results_dict['num_I'],
+                'Total number of agents': init_results_dict['num_agents'],
+                'Number of susceptible agents': init_results_dict['num_S'],
+                'Number of infected agents': init_results_dict['num_I'],
                 'Total exposure time (minutes)': round(init_results_dict['total_exposure_time'], 2),
-                'Number of susceptible customers which have at least one contact with an infectious customer':
-                    init_results_dict['num_cust_w_contact'],
+                'Number of susceptible agents which have at least one contact with an infectious agent':
+                    init_results_dict['num_agents_w_contact'],
                 'Mean number of customers in the store during the simulation': round(
                     init_results_dict['mean_num_cust_in_store'], 2),
                 'Maximum number of customers in the store during the simulation': init_results_dict[
                     'max_num_cust_in_store'],
-                'Total number of contacts between infectious customers and susceptible customers': init_results_dict[
+                'Total number of contacts between infectious agents and susceptible agents': init_results_dict[
                     'num_contacts'],
                 'Mean of the shopping times (minutes)': round(init_results_dict['mean_shopping_time'], 2),
                 "Length of the store's opening hours (minutes)": init_results_dict['store_open_length'],
@@ -104,17 +109,17 @@ def index():
 
             # Change dict keys and select only relevant variables, visualize
             results_dict = {
-                'Total number of customers': chart(init_results_dict['num_cust'], config['duration_days']),
-                'Number of susceptible customers': chart(init_results_dict['num_S'], config['duration_days']),
-                'Number of infected customers': chart(init_results_dict['num_I'], config['duration_days']),
+                'Total number of agents': chart(init_results_dict['num_agents'], config['duration_days']),
+                'Number of susceptible agents': chart(init_results_dict['num_S'], config['duration_days']),
+                'Number of infected agents': chart(init_results_dict['num_I'], config['duration_days']),
                 'Total exposure time (minutes)': chart(round(init_results_dict['total_exposure_time'], 2), config['duration_days']),
-                'Number of susceptible customers which have at least one contact with an infectious customer':
-                    chart(init_results_dict['num_cust_w_contact'], config['duration_days']),
+                'Number of susceptible agents which have at least one contact with an infectious agent':
+                    chart(init_results_dict['num_agents_w_contact'], config['duration_days']),
                 'Mean number of customers in the store during the simulation': chart(round(
                     init_results_dict['mean_num_cust_in_store'], 2), config['duration_days']),
                 'Maximum number of customers in the store during the simulation': chart(init_results_dict[
                     'max_num_cust_in_store'], config['duration_days']),
-                'Total number of contacts between infectious customers and susceptible customers': chart(init_results_dict[
+                'Total number of contacts between infectious agents and susceptible agents': chart(init_results_dict[
                     'num_contacts'], config['duration_days']),
                 'Mean of the shopping times (minutes)': chart(round(init_results_dict['mean_shopping_time'], 2), config['duration_days']),
                 "Length of the store's opening hours (minutes)": chart(init_results_dict['store_open_length'], config['duration_days']),

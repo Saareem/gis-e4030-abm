@@ -7,58 +7,103 @@
 {% block body %}
 <div class="content">
     <h1 style="text-align: center">Set parameters for config and press RUN</h1>
-
+    <p>
+        This webpage works as the presentation and graphical user interface for the agent-based covid-19 simulation in
+        a pre-defined store network. All the code for the app and the backend can be found from
+        <a href="https://github.com/Saareem/gis-e4030-abm">a public GitHub repository</a>.
+    </p>
     <div class="form">
         <form action="/" method="POST">
-            <label for="param1">Arrival rate:</label>
-            <input type="number" name="param1" id="param1" value="2.55" step="0.05" min="0" max="5" required="required" placeholder="Set a value for the arrival rate"><br>
+            <fieldset>
+                <legend>General parameters:</legend>
+                <label for="param1">Arrival rate:</label>
+                <input type="number" name="param1" id="param1" value="2.55" step="0.05" min="0" max="5" required="required" placeholder="Set a value for the arrival rate"><br>
 
-            <label for="param2">Traversal time:</label>
-            <input type="number" name="param2" id="param2" value="0.2" step="0.1" min="0" max="0.5" required="required"><br>
+                <label for="param2">Traversal time:</label>
+                <input type="number" name="param2" id="param2" value="0.2" step="0.1" min="0" max="0.5" required="required"><br>
 
-            <label for="param3">Infection proportion:</label>
-            <input type="number" name="param3" id="param3" value="0.001" step="0.001" min="0" max="1" required="required"><br>
+                <label for="param3">Infection proportion:</label>
+                <input type="number" name="param3" id="param3" value="0.001" step="0.001" min="0" max="1" required="required"><br>
 
-            <label for="param4">Simulation duration (days)</label>
-            <input type="number" name="param4" id="param4" value="1" step="1" min="1" max="30" required="required"><br>
+                <label for="param4">Simulation duration (days)</label>
+                <input type="number" name="param4" id="param4" value="1" step="1" min="1" max="30" required="required"><br>
 
-            <label for="param5">Week day (0= monday, 6=sunday):</label>
-            <input type="number" name="param5" id="param5" min="0" max="6" value="0" step="1" required="required"><br>
+                <label for="param5">Week day (0= monday, 6=sunday):</label>
+                <input type="number" name="param5" id="param5" min="0" max="6" value="0" step="1" required="required"><br>
 
-            <label for="param6">Customers together:</label>
-            <input type="number" name="param6" id="param6" value="0" min="0" max="1" step="0.1" required="required"><br>
+                <label for="param6">Customers together:</label>
+                <input type="number" name="param6" id="param6" value="0" min="0" max="1" step="0.1" required="required"><br>
 
-            <label for="param7">Random weights range:</label>
-            <input type="number" name="param7" id="param7" value="1" min="1" max="1000" step="1" required="required"><br>
+                <p>
+                    Adjust the general parameters to run the simulation. <b>Arrival rate</b> (in minutes) adjusts how often on
+                    average the customers will arrive to the store, <b>Traversal time</b> (in minutes) is the mean time
+                    how frequently the agents (unless specified for the staff separately) will move from one node to another
+                    and <b>infection proportion</b> signifies the probability of an agent being infected. Additionally,
+                    <b>simulation duration</b> can be used to run multiple iterations, i.e. multiple days with cyclically
+                    alternating week days and popular hours. Finally, <b>week day</b> can be used to select the week day
+                    when simulating a single day, i.e. simulation duration == 1 and <b>customers together</b> controls
+                    the probability (from 0 to 1) by which customers arrive in groups of two.
+                </p>
+            </fieldset>
 
-            <label for="param8">Random weights seed:</label>
-            <input type="number" name="param8" id="param8" value="0" min="0" max="65535" step="1" required="required"><br>
+            <fieldset>
+                <legend>Weight parameters:</legend>
+                <label for="param7">Random weights range:</label>
+                <input type="number" name="param7" id="param7" value="1" min="1" max="1000" step="1" required="required"><br>
 
-            <label for="param9">runtime path generation</label>
-            <input type="checkbox" name="param9" id="param9" checked ><br>
+                <label for="param8">Random weights seed:</label>
+                <input type="number" name="param8" id="param8" value="0" min="0" max="65535" step="1" required="required"><br>
+                <p>
+                    Weight parameters can be used to give random weights to the store shelves in the simulation. This
+                    affects how popular the items in those shelves are, i.e. how often those shelves are visited by the
+                    customers.
+                </p>
+            </fieldset>
 
-            <label for="param10">Path update interval:</label>
-            <input type="number" name="param10" id="param10" value="5" min="3" max="20" step="1" required="required"><br>
+            <fieldset>
+                <p class="warning">Warning: Enabling runtime path generation will increase the running time of the
+                    simulation roughly 3 times / iteration compared to the synthetic path generation. Changing the
+                    parameters might also affect the exposure significantly or, theoretically, even prevent the simulation
+                    from finishing. Use with caution!
+                </p>
+                <legend>Runtime parameters:</legend>
+                <label for="param9">Runtime path generation</label>
+                <input type="checkbox" name="param9" id="param9"><br>
 
-            <label for="param11">Avoidance factor:</label>
-            <input type="number" name="param11" id="param11" value="1" min="0" max="100" step="0.1" required="required"><br>
+                <label for="param10">Path update interval:</label>
+                <input type="number" name="param10" id="param10" value="5" min="3" max="20" step="1" required="required"><br>
 
-            <label for="param12">Avoidance exponent:</label>
-            <input type="number" name="param12" id="param12" value="1" min="0" max="5" step="0.1" required="required"><br>
+                <label for="param11">Avoidance factor:</label>
+                <input type="number" name="param11" id="param11" value="1" min="0" max="100" step="0.1" required="required"><br>
 
+                <label for="param12">Avoidance exponent:</label>
+                <input type="number" name="param12" id="param12" value="1" min="0" max="5" step="0.1" required="required"><br>
+                <p>
+                    By enabling the runtime path generation, the agents (except staff members) will try avoiding each other
+                    and constantly recalculate their path according to the items they want to buy, their locations and
+                    visibility of other agents in their neighborhood. <b>Path update interval</b> will adjust, how often
+                    the path is recalculated, <b>avoidance factor</b> controls how much the agents will avoid each other
+                    and <b>avoidance exponent</b> controls ... <!-- TODO: Iikka should complete this explanation -->
+                </p>
+            </fieldset>
+            <fieldset>
+                <legend>Staff parameters:</legend>
+                <label for="param13">Number of staff members:</label>
+                <input type="number" name="param13" id="param13" value="0" min="0" max="6" step="1" required="required"><br>
 
-
+                <label for="param14">Staff traversal time:</label>
+                <input type="number" name="param14" id="param14" value="0.6" min="0.2" max="5" step="0.1" required="required"><br>
+                <p>
+                    <b>Number of staff members</b> defines the amount of staff members included in the simulation and
+                    <b>staff traversal time</b> controls the mean time how frequently the staff members move from one
+                    node to another. All the staff starts at node 27, which is selected based on its location in the
+                    store.
+                </p>
+            </fieldset>
             <input type="submit" value="RUN">
         </form>
     </div><br>
 
     <button onClick="window.location.reload();">Reset parameters</button>
-
-    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore
-        magna aliqua. Id venenatis a condimentum vitae. Justo nec ultrices dui sapien eget mi proin. Sed faucibus turpis in eu mi
-        bibendum neque egestas. Praesent tristique magna sit amet purus gravida quis blandit. Vitae semper quis lectus
-        nulla at. Egestas congue quisque egestas diam in arcu cursus euismod. Faucibus turpis in eu mi bibendum. Urna et
-        pharetra pharetra massa massa ultricies mi quis. Metus vulputate eu scelerisque felis imperdiet proin. Rhoncus
-        dolor purus non enim praesent elementum. Lobortis elementum nibh tellus molestie.</p>
 </div>
 {% endblock %}

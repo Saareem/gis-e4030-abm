@@ -3,13 +3,13 @@ This code accompanies the paper ["Modelling COVID-19 transmission in supermarket
 
 Differences between Fabian Ying's original and ours forked repository:
 
-(1) [Web application](https://github.com/fabianying/covid19-supermarket-abm)
+(1) [Web application (`app.py`)](https://github.com/Saareem/gis-e4030-abm#web-application)
 
 (2) Runtime path generator
 
 (3) Some customers might arrive in pairs
 
-(4) Staff is included
+(4) [Staff is included](https://github.com/Saareem/gis-e4030-abm#concept-of-general-agent-and-inclusion-of-staff-members)
 
 (5) In addition of numerical result, also visualizations can be displayed
 
@@ -21,18 +21,18 @@ Differences between Fabian Ying's original and ours forked repository:
 
 # Installation
 
-Our package relies mainly on [SimPy](https://simpy.readthedocs.io/en/latest/), which requires Python >= 3.6.\
-Shapely is required for calculating visibility based on shelves. Visibility is required for runtime path generation, but it can be calculated without shelves.
-More information about runtime path generation is provided later in the document.
-
+Our package relies mainly on [SimPy](https://simpy.readthedocs.io/en/latest/), which requires Python >= 3.6. Additionally, Flask, Werkzeug and Shapely libraries are used.
+To get going:
 ```bash
 > pip install covid19-supermarket-abm
-> pip install shapely
+> pip install flask
+> pip install werkzeug
+> pip install Shapely
 ```
 
 # Example
 
-If you only want to run the application, you can use [web application](https://covid19-abm.azurewebsites.net/) (if it is working).
+If you only want to run the application, you can use web application by running `app.py` from the repository root on a local computer. This will start a development server instance on localhost, i.e. [http://127.0.0.1:5000](http://127.0.0.1:5000) by default but the location might vary based on your system configuration. 
  
 In the example below, we use locally the example data included in the package to simulate a day in the fictitious store
 given the parameters below. 
@@ -67,31 +67,31 @@ print(list(results_dict.keys()))
 ```
 Output:
 ```python
-['num_cust', 'num_S', 'num_I', 'total_exposure_time', 'num_contacts_per_cust', 'num_cust_w_contact', 'mean_num_cust_in_store', 'max_num_cust_in_store', 'num_contacts', 'shopping_times', 'mean_shopping_time', 'num_waiting_people', 'mean_waiting_time', 'store_open_length', 'df_num_encounters_per_node', 'df_exposure_time_per_node', 'total_time_crowded', 'exposure_times', 'logs', 'runtime']
+['num_agents', 'num_S', 'num_I', 'total_exposure_time', 'num_contacts_per_agent', 'num_agents_w_contact', 'mean_num_cust_in_store', 'max_num_cust_in_store', 'num_contacts', 'shopping_times', 'mean_shopping_time', 'num_waiting_people', 'mean_waiting_time', 'store_open_length', 'df_num_encounters_per_node', 'df_exposure_time_per_node', 'total_time_crowded', 'exposure_times', 'logs', 'runtime']
 ```
 
 See below for their description.
 
 Key | Description
 ------------ | -------------
-`num_cust `| Total number of customers
-`num_S` | Number of susceptible customers
-`num_I` | Number of infected customers
+`num_agents `| Total number of agents
+`num_S` | Number of susceptible agents
+`num_I` | Number of infected agents
 `total_exposure_time` | Total exposure time
-`num_contacts_per_cust` | List of number of contacts with infectious customers per susceptible customer with at least one contact
-`num_cust_w_contact` | Number of susceptible customers which have at least one contact with an infectious customer
+`num_contacts_per_agent` | List of number of contacts with infectious agents per susceptible agent with at least one contact
+`num_agents_w_contact` | Number of susceptible agents which have at least one contact with an infectious agent
 `mean_num_cust_in_store` | Mean number of customers in the store during the simulation
 `max_num_cust_in_store` | Maximum number of customers in the store during the simulation
-`num_contacts` | Total number of contacts between infectious customers and susceptible customers
-`df_num_encounters_per_node` | Dataframe which contains the the number of encounters with infectious customers for each node
+`num_contacts` | Total number of contacts between infectious agents and susceptible agents
+`df_num_encounters_per_node` | Dataframe which contains the the number of encounters with infectious agents for each node
 `shopping_times` | Array that contains the length of all customer shopping trips
 `mean_shopping_time` | Mean of the shopping times
 `num_waiting_people` | Number of people who are queueing outside at every minute of the simulation (when the number of customers in the store is restricted)
 `mean_waiting_time` | Mean time that customers wait before being allowed to enter (when the number of customers in the store is restricted)
 `store_open_length` | Length of the store's opening hours (in minutes) 
 `df_exposure_time_per_node` | Dataframe containing the exposure time per node
-`total_time_crowded` | Total time that nodes were crowded (when there are more than `thres` number of customers in a node. Default value of `thres` is 3)
-`exposure_times` | List of exposure times of customers (only recording positive exposure times)
+`total_time_crowded` | Total time that nodes were crowded (when there are more than `thres` number of agents in a node. Default value of `thres` is 3)
+`exposure_times` | List of exposure times of agents (only recording positive exposure times)
 `store_open_length` | Length of the store's opening hours in minutes
 `runtime` | Total running time per simulated day 
 
@@ -141,8 +141,11 @@ Key | Description
  `day` | Starting week day. Relevant if popular times are defined and user wants to simulate only one day. (Default: `0` i.e. monday)
  `customers_together` | Proportion of customers shopping together. Number between 0 and 1. (Default: `0`)
  `runtime` | Set to `true` to allow customers to avoid each other by using runtime path generators. (Default: `False`) If set to `True`, path generator type also needs to be set accordingly to `runtime`. WARNING: This will make code slower, about 2-4 times with default runtime parameters.
+ `staff_start_nodes` | A tuple of the start positions of the staff members in the store graph. For example `(1, 24, 34)` signifies that the staff members will start at nodes 1, 24 and 34 according to the order they are added into the store. The number of elements in the tuple define the number of staff members in the simulation.
+ `staff_traversal_time` | Mean wait time at each node (in minutes) for the staff members. If none is supplied, the general `traversal_time` is used. 
 
 In addition, there are optional keys used for runtime path generation. These are detailed in the Runtime path generation -section.
+ 
 
 
  ## Store network
@@ -330,12 +333,33 @@ This is not a very interesting distribution, because the ratio of the mean and t
 -`products.csv` containing product names and corresponding weights. [Example](https://github.com/Saareem/gis-e4030-abm/blob/main/covid19_supermarket_abm/kmarket_data/products.csv) \
 -`shelves_to_nodes.csv` linking all shelves to some nodes. [Example](https://github.com/Saareem/gis-e4030-abm/blob/main/covid19_supermarket_abm/kmarket_data/shelves_to_nodes.csv)
 
+# Concept of general agent and inclusion of staff members
+Contrary to the original program by Young, the `core.py` was reworked to include store staff members in the simulation. To enable this in least confusing way we could come up with, most of the methods that used to handle only customers were refactored to handle general (moving) agents. The methods handling agents should allow adding different kind of agents although some coding work in `core.py` is definitely required. Additionally, the method names and some attribute names have been changed correspondingly to decrease confusion. 
+
+**Note: Inclusion of staff member will have some implications on how the results of the simulation should be interpreted, since the staff will be included in the number of susceptible, infected and total agents.** In those cases, what used to be number of customers is now the sum of customers and staff members. Correspondingly, those keys in the `results_dict` have been renamed to reflect the change.
+
+## Staff member 
+The staff member is an agent that starts its shift when the store opens and quits when it closes. This is not really realistic, but we decided it's not worth the effort to implement any kind of specific arrival and exit times, i.e. shifts as the number of staff is generally very small compared to the number of daily customers. 
+
+The staff members start at a specified node in the store graph and move by selecting randomly a neighboring node from an **undirected copy** of the original store graph. An undirected graph is used as it was decided that the staff should be able to traverse edges to both directions. Partly this is because staff is allowed to move in the store more freely but partly also because this prevents the staff member getting trapped in a node of no return. The staff **will ignore the runtime path generation and move the same way irrespective of the path generation method**, i.e. they will not try avoiding other agents or calculating better path.
+
+## The logic of separating different kinds of agents
+As the original version didn't use object-oriented approach, we decided not to change that. However, to allow the program to handle interactions of different kinds of agents including the staff members, the `agent_id` number of the agent is used to distinguish between them. In current implementation, the staff members will populate the first `n` elements of the agent list where `n` is the amount of the staff members. Agents `id` number of which is equal or above `n` will be treated as customers in the simulation.   
+
+Essentially if `n = 2` the agent list will be:
+
+`agent_id` | `agent_type`
+-----|------------
+0    | "staff member"
+1    | "staff member"
+2    | "customer"
+...  | ...
+
 # Web application
 
 Web application is in progress, but it is based on [app.py](https://github.com/Saareem/gis-e4030-abm/blob/main/app.py) - file and [flask](https://flask.palletsprojects.com/en/2.0.x/)-library for Python. The application is used mainly as a graphical user interface of original code.  
 
-Web application contains several html-files and one css-file. Most html-files are extended from base.html. Our web application is deployed to Azure, so requirements.txt is needed. If application is working, you can find it from url: [https://covid19-abm.azurewebsites.net/](https://covid19-abm.azurewebsites.net/)
-
+Web application contains several html-files and one css-file. Most html-files are extended from base.html. Our web application can be deployed to Azure, so requirements.txt is included. 
  # Questions?
 
 Original repository:
@@ -345,4 +369,5 @@ Original repository:
 Forked repository:
  Feel free to ask something
  [Alpo.96@gmail.com](Alpo.96@gmail.com)
+ [eemeli.saarelainen@gmail.com](eemeli.saarelainen@gmail.com)
  
