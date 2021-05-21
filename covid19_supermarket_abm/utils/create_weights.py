@@ -14,7 +14,7 @@ def create_weights(G: nx.graph, data_dir: Optional[str] = None, weight_range: Op
     Directory needs to contain shelves.json with product field, products.csv listing different products and their
     weights, and shelves_to_nodes.csv for linking shelves to nodes
     If no data_dir is given, random weights are created at uniform within the weight range
-    # TODO Maybe another distribution of weights, such as normal distribution, would make more sense
+    # TODO The uniform distribution of random weights is not very interesting, another distribution should be considered
     :param data_dir: directory of the files
     :param weight_range: range of integer values used for random weights, value of 1 means uniform weights
     :param seed: if given a non-zero value, will be used as seed for random weights generation

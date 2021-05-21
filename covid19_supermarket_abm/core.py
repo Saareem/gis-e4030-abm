@@ -298,6 +298,7 @@ class Store(object):
         :param start: Current location of the agent
         :param agent_id: ID of the agent
         """
+        # TODO It should be possible that the customers get stuck in an infinite loop avoiding each other, although this hasn't happened yet
 
         def _weight_function(u, v, e):
             """

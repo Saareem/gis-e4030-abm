@@ -5,7 +5,7 @@ Differences between Fabian Ying's original and ours forked repository:
 
 (1) [Web application](https://github.com/fabianying/covid19-supermarket-abm)
 
-(2) Real-time path generator
+(2) Runtime path generator
 
 (3) Some customers might arrive in pairs
 
@@ -21,10 +21,13 @@ Differences between Fabian Ying's original and ours forked repository:
 
 # Installation
 
-Our package relies mainly on [SimPy](https://simpy.readthedocs.io/en/latest/), which requires Python >= 3.6.
+Our package relies mainly on [SimPy](https://simpy.readthedocs.io/en/latest/), which requires Python >= 3.6.\
+Shapely is required for calculating visibility based on shelves. Visibility is required for runtime path generation, but it can be calculated without shelves.
+More information about runtime path generation is provided later in the document.
 
 ```bash
 > pip install covid19-supermarket-abm
+> pip install shapely
 ```
 
 # Example
@@ -137,7 +140,9 @@ Key | Description
  `duration_days` | The number of days in simulation. If more than `1`, uses simulate_several_days - function. (Default: `1`)
  `day` | Starting week day. Relevant if popular times are defined and user wants to simulate only one day. (Default: `0` i.e. monday)
  `customers_together` | Proportion of customers shopping together. Number between 0 and 1. (Default: `0`)
- `realtime` | Set to `true` to allow customers to avoid each other by using real time path generators. (Default: `False`) WARNING: This will make code 3-4 time slower. 
+ `runtime` | Set to `true` to allow customers to avoid each other by using runtime path generators. (Default: `False`) If set to `True`, path generator type also needs to be set accordingly to `runtime`. WARNING: This will make code slower, about 2-4 times with default runtime parameters.
+
+In addition, there are optional keys used for runtime path generation. These are detailed in the Runtime path generation -section.
 
 
  ## Store network
@@ -192,7 +197,7 @@ There are three* path generators implemented in this package.
 
 (2) Synthetic path generator
 
-(3) Real-time path generator
+(3) Runtime path generator
 
 You can also implement your own path generator and pass it.
 
@@ -272,11 +277,58 @@ path_generator_function, path_generator_args = get_path_generator(path_generatio
  ```
 
  Note that this path generator may be quite slow. In the paper, we first pre-generated paths 100,000 paths 
- and then used the Empirical path generator with the pre-generated paths.  
+ and then used the Empirical path generator with the pre-generated paths. 
 
-### Real-time path generator
+### Runtime path generator
 
-This path generator allows customers to avoid each other in store. If some node is too conqested, customer will find a new path. As you can see from the name, this generator works in real time, which makes code 3-4 times slower.  
+Runtime path generator creates node sequences using steps 1-4 from synthetic path generation. The sequences aren't converted to full paths using step 5.
+During simulation run, the customers update their paths using A* algorithm. Uses parameters given in `config`.
+Runtime path generation with default parameters is about 2-4 slower than synthetic path generation, but the performance is dramatically infleunced by the parameters and probably by the network as well.
+
+ Runtime parameter key | Description
+------------ | -------------
+`path_update_interval`| The interval of nodes at which the customers recalculate their paths. Minimum value is 2, but low values cause frequent updating and longer runtimes. (Default: `5`)
+`shortest_path_dict` | Not optional, needs to be given. A dictionary of all shortest paths in the graph. Used for calculating the heuristics in A*.
+`node_visibility` | Not optional, needs to be given. A dictionary of node pairs, where a value `1`indicates visibility between the nodes, and `0` non-visibility. Used for calculating edge weights in A*. Example on how to calculate given below.
+`avoidance_factor` | The edge weights in A* are calculated from: `avoidance_factor*n^avoidance_k`, where `n` is the amount of customers in the end node of the edge. `n` is `0` if the node isn't visible to the customer. (Default: `1`)
+`avoidance_k` | See `avoidance_factor` (Default: `1`)
+
+Example code:
+ ```python
+from covid19_supermarket_abm.path_generators import get_path_generator
+from covid19_supermarket_abm.utils.create_synthetic_baskets import get_all_shortest_path_dicts
+from covid19_supermarket_abm.utils.node_visibility import node_visibility
+import networkx as nx
+entrance_nodes = [0]
+till_nodes = [2]
+exit_nodes = [3]
+item_nodes = [1]
+mu = 0.07
+sigma = 0.76
+weights = create_weights(G=G, data_dir=None, weight_range=10)
+config['shortest_path_dict'] = get_all_shortest_path_dicts(G)
+config['node_visibility'] = node_visibility(G) # An optional argument 'data_dir' can give directory of a shelves.json -file.
+							# If given, visibility is calculated using these rectangular shelves.
+runtime_path_generator_args = [mu, sigma, entrance_nodes, till_nodes, exit_nodes, item_nodes, weights]
+path_generator_function, path_generator_args = get_path_generator(path_generation='runtime',
+                                                            runtime_path_generator_args=runtime_path_generator_args)
+ ```
+ 
+ NOTE: It should be possible for the customers to get stuck in an infintite loop of avoiding each other. This hasn't happened in the kmarket-graph, but it might be more probable in other graphs.
+
+### Node weights
+
+For `synthetic` and `runtime` path generation, an optional weight parameter can be given in `synthetic_path_generator_args` or `runtime_path_generator_args`.
+An example of how to calculate weights is given in the example code in the Runtime path generator -section. If weights are given, the item nodes are not selected uniformly, but by utilising the weights.
+There are two ways to calculate weights:\
+\
+(1) Random weights, as used in the example code. Currently, the random weights are calculated using a uniform distribution between `1` and the given weight range (Default: `1`, i.e. uniform weights).
+This is not a very interesting distribution, because the ratio of the mean and the extremes is always similar.
+
+(2) Weights using files from directory defined in `data_dir`. If a directory is given, it needs to contain 3 files:\
+-`shelves.json` containing a `product` field, giving the name for the products in that shelf. [Example](https://github.com/Saareem/gis-e4030-abm/blob/main/covid19_supermarket_abm/kmarket_data/shelves.json) \
+-`products.csv` containing product names and corresponding weights. [Example](https://github.com/Saareem/gis-e4030-abm/blob/main/covid19_supermarket_abm/kmarket_data/products.csv) \
+-`shelves_to_nodes.csv` linking all shelves to some nodes. [Example](https://github.com/Saareem/gis-e4030-abm/blob/main/covid19_supermarket_abm/kmarket_data/shelves_to_nodes.csv)
 
 # Web application
 
