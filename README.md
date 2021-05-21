@@ -361,6 +361,9 @@ Essentially if `n = 2` the agent list will be:
 Web application is in progress, but it is based on [app.py](https://github.com/Saareem/gis-e4030-abm/blob/main/app.py) - file and [flask](https://flask.palletsprojects.com/en/2.0.x/)-library for Python. The application is used mainly as a graphical user interface of original code.  
 
 Web application contains several html-files and one css-file. Most html-files are extended from base.html. Our web application can be deployed to Azure, so requirements.txt is included. 
+
+# Visualizations
+There are three functions included for visualisation of results. As such they are meant to be used with the webapp, but they can be easily modified to be used locally as well. The functionality is based on [matplotlib.pyplot](https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.html) API. The fuctions visualize the exposure times and contacts per node, as well as plot the variables over multiple-day simulations
  # Questions?
 
 Original repository:
