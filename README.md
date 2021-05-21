@@ -21,13 +21,31 @@ Differences between Fabian Ying's original and ours forked repository:
 
 # Installation
 
-Our package relies mainly on [SimPy](https://simpy.readthedocs.io/en/latest/), which requires Python >= 3.6. Additionally, Flask, Werkzeug and Shapely libraries are used.
+Our package relies mainly on packages [covid-19-supermarket_abm](https://pypi.org/project/covid19-supermarket-abm/) and [SimPy](https://simpy.readthedocs.io/en/latest/), which requires Python >= 3.6. Additionally, Flask, Werkzeug and Shapely libraries are used. The code has only been tested on Windows but technically it should also work on other operating systems if the Python version and package version requirements under `requirements.txt` can be satisfied.
 To get going:
+
+Recommended: Set up virtualenv. Skip if you know what you are doing and know possible consequences.
 ```bash
-> pip install covid19-supermarket-abm
-> pip install flask
-> pip install werkzeug
-> pip install Shapely
+# Make sure you have virtualenv installed
+> py -m pip install --user virtualenv      # WINDOWS
+> python3 -m pip install --user virtualenv # Linux/macOSx
+
+# Create the environment
+> py -m venv env                           # WINDOWS
+> python3 -m venv env                      # Linux/macOSx
+
+# Activate the environment
+> .\env\Scripts\activate                   # WINDOWS
+> source env/bin/activate                  # Linux/macOSx
+
+# Now your python and pip should be pointing to those in the env directory
+
+# Deactivate when you are finished
+> deactivate
+```
+Then just install the packages by:	
+```bash
+> pip install -r requirements.txt
 ```
 
 Alternatively, you can use run ```pip install -r C:\WorkSpace\requirements.txt``` in the virtual environment to install all Python packages written in the requirements.txt file.
