@@ -316,17 +316,17 @@ class Store(object):
             return len(self.shortest_path_dict[source][target][0])
 
         shortest_path = [start]
-        not_visited = self.baskets[agent_id]
+        basket = self.baskets[agent_id]
 
         # If there are nodes left that the customer wants to visit
-        if len(not_visited) > 0:
-            path = nx.algorithms.astar_path(self.G, start, not_visited[0], heuristic=_heuristic_function,
+        if len(basket) > 0:
+            path = nx.algorithms.astar_path(self.G, start, basket[0], heuristic=_heuristic_function,
                                             weight=_weight_function)
             N = min(self.path_update_interval, len(path))
             shortest_path = path[:N]
 
         # Duplicate nodes in basket so the agent stays in them to buy something
-        if shortest_path[-1] in not_visited:
+        if shortest_path[-1] in basket:
             shortest_path.append(shortest_path[-1])
 
         return shortest_path
