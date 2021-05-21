@@ -1,13 +1,11 @@
 import base64
 import io
-import os
 from PIL import Image
 import matplotlib.pyplot as plt
 import networkx as nx
-import matplotlib as mpl
 
 
-def visualize_single_day(G, dictionary, ):
+def visualize_single_day(G, dictionary):
     """
     Function for visualizing a single-day simulation
     :param G: a networkx graph of the store
@@ -21,8 +19,7 @@ def visualize_single_day(G, dictionary, ):
     # define images 1 and 2
     fig1 = plt.figure(figsize=[12, 8])
     df1 = 'df_num_encounters_per_node'
-    plt.title('Number of encounters per node, 1 iteration', figure = fig1)
-
+    plt.title('Number of encounters per node, 1 iteration', figure=fig1)
 
     # draw figure 1
     draw_edges = nx.draw_networkx_edges(G, pos)
@@ -30,7 +27,6 @@ def visualize_single_day(G, dictionary, ):
     draw_labels = nx.draw_networkx_labels(G, pos, font_color='w')
     cbar = plt.colorbar(draw_nodes)
     cbar.set_label('N:o of encounters')
-
 
     # transform fig1 to png and then to bytearray
     img = fig2img(fig1)
@@ -119,7 +115,7 @@ def visualize_multiple_days(G, encounters, exposure_time, days):
     print(len(result_images))
 
     fig2 = plt.figure(figsize=[12, 8])
-    plt.title('Mean number of exposure time node, '+str(days)+' iterations', figure=fig2)
+    plt.title('Mean of exposure time per node, '+str(days)+' iterations', figure=fig2)
 
     draw_edges = nx.draw_networkx_edges(G, pos)
     draw_nodes = nx.draw_networkx_nodes(G, pos, node_color=mean_exposure_time, cmap=plt.get_cmap('inferno'))
@@ -128,13 +124,13 @@ def visualize_multiple_days(G, encounters, exposure_time, days):
     #draw_nodes.set_clim(0, 3)
     cbar.set_label('minutes')
 
-    # transform fig1 to png and then to bytearray
+    # transform fig2 to png and then to bytearray
     img = fig2img(fig2)
     byte_arr = io.BytesIO()
     img.save(byte_arr, format='png')
     img = byte_arr.getvalue()
 
-    # fig1 to base64 encoding
+    # fig2 to base64 encoding
     image_data = base64.b64encode(img)
     if not isinstance(image_data, str):
         image_data = image_data.decode()
@@ -145,7 +141,10 @@ def visualize_multiple_days(G, encounters, exposure_time, days):
     return result_images
 
 def fig2img(fig):
-    """Convert a Matplotlib figure to a PIL Image and return it"""
+    """Convert a Matplotlib figure to a PIL Image and return it.
+    Based on this Stack Overflow answer by user kotchwane: https://stackoverflow.com/a/61754995
+    :param fig: a matplotlib figure
+    :return: img: a PIL .png image"""
     import io
     buf = io.BytesIO()
     fig.savefig(buf)
@@ -161,7 +160,7 @@ def chart(series, days):
     :return: img: a base64 encoded string
     """
     # create a figure, visualize and add ticks and label
-    fig = plt.figure(figsize=[5, 4])
+    fig = plt.figure(figsize=[7, 4])
     plot = series.plot()
     ticks = list(range(1, days+1))
     plt.xticks(series.index, ticks)
