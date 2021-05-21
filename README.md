@@ -43,12 +43,11 @@ Recommended: Set up virtualenv. Skip if you know what you are doing and know pos
 # Deactivate when you are finished
 > deactivate
 ```
-Then just install the packages by:	
+Then just install the required packages by:	
 ```bash
 > pip install -r requirements.txt
 ```
-
-Alternatively, you can use run ```pip install -r C:\WorkSpace\requirements.txt``` in the virtual environment to install all Python packages written in the requirements.txt file.
+in the root of the gis-e4030-abm
 
 # Example
 
